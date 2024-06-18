@@ -149,7 +149,7 @@ impl EthApi {
             loop {
                 let run = async {
                     let mut sub = client
-                        .subscribe("eth_subscribe", ["newFinalizedHeads".into()].into(), "eth_unsubscribe")
+                        .subscribe("eth_subscribe", ["newHeads".into()].into(), "eth_unsubscribe")
                         .await?;
 
                     loop {
