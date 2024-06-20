@@ -124,13 +124,11 @@ impl<Request: Debug + Send + 'static, Result: Send + 'static> Middlewares<Reques
         result_tx: tokio::sync::oneshot::Sender<Result>,
         timeout: tokio::time::Duration,
     ) {
-        let iter = self.middlewares.iter().rev();
         let fallback = self.fallback.clone();
         let mut next: Box<dyn FnOnce(Request, TypeRegistry) -> BoxFuture<'static, Result> + Send + Sync> =
             Box::new(move |request, context| (fallback)(request, context));
 
-        for middleware in iter {
-            let middleware = middleware.clone();
+        for middleware in self.middlewares.iter().rev().cloned() {
             let next2 = next;
             next =
                 Box::new(move |request, context| async move { middleware.call(request, context, next2).await }.boxed());

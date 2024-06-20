@@ -24,6 +24,8 @@ pub async fn create_method_middleware(
     use super::methods::*;
 
     match name {
+        "whitelist" => whitelist::WhitelistMiddleware::build(method, extensions).await,
+
         "response" => response::ResponseMiddleware::build(method, extensions).await,
         "upstream" => upstream::UpstreamMiddleware::build(method, extensions).await,
         "cache" => cache::CacheMiddleware::build(method, extensions).await,

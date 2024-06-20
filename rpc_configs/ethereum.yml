@@ -123,7 +123,7 @@ methods:
       - name: blockCount
         ty: Bytes
       - name: newestBlock
-        ty: boolean
+        ty: Boolean
       - name: rewardPercentiles
         ty: Bytes
 

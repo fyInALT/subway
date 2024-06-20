@@ -185,7 +185,7 @@ impl MiddlewareBuilder<RpcSubscription, SubscriptionRequest, SubscriptionResult>
             .get::<MergeSubscription>()
             .expect("MergeSubscription extension not found");
 
-        Some(Box::new(MergeSubscriptionMiddleware::new(
+        Some(Box::new(Self::new(
             client,
             merge_strategy,
             merge_subscription.config.keep_alive_seconds,

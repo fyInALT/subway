@@ -5,6 +5,7 @@ pub mod inject_params;
 pub mod response;
 pub mod upstream;
 pub mod validate;
+pub mod whitelist;
 
 #[cfg(test)]
 pub mod testing;
