@@ -128,7 +128,7 @@ impl<Request: Debug + Send + 'static, Result: Send + 'static> Middlewares<Reques
         let mut next: Box<dyn FnOnce(Request, TypeRegistry) -> BoxFuture<'static, Result> + Send + Sync> =
             Box::new(move |request, context| (fallback)(request, context));
 
-        for middleware in self.middlewares.iter().rev().cloned() {
+        for middleware in self.middlewares.iter().cloned().rev() {
             let next2 = next;
             next =
                 Box::new(move |request, context| async move { middleware.call(request, context, next2).await }.boxed());

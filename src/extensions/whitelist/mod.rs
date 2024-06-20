@@ -6,11 +6,11 @@ use serde::Deserialize;
 use super::{Extension, ExtensionRegistry};
 
 // Read rpc.
-pub const ETH_CALL: &'static str = "eth_call";
+pub const ETH_CALL: &str = "eth_call";
 
 // Write rpc.
-pub const SEND_RAW_TX: &'static str = "eth_sendRawTransaction";
-pub const SEND_TX: &'static str = "eth_sendTransaction";
+pub const SEND_RAW_TX: &str = "eth_sendRawTransaction";
+pub const SEND_TX: &str = "eth_sendTransaction";
 
 pub struct Whitelist {
     pub config: WhitelistConfig,

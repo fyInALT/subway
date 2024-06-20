@@ -74,10 +74,10 @@ impl WhiteAddress {
     }
 
     pub fn satisfy_from_address(&self, from: &Address) -> bool {
-        self.from == None || self.from.as_ref() == Some(from)
+        self.from.is_none() || self.from.as_ref() == Some(from)
     }
 
     pub fn satisfy_to_address(&self, to: &ToAddress) -> bool {
-        self.to == None || self.to.as_ref() == Some(to)
+        self.to.is_none() || self.to.as_ref() == Some(to)
     }
 }

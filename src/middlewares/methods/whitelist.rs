@@ -93,7 +93,7 @@ impl MiddlewareBuilder<RpcMethod, CallRequest, CallResult> for WhitelistMiddlewa
 
 /// Extract the address from `eth_call`/`eth_sendTranslation` parameters and convert it into lowercase.
 pub fn extract_address_from_to(params: &[JsonValue]) -> Result<(Address, ToAddress), ErrorObjectOwned> {
-    let p1 = params.get(0).ok_or_else(err_illegal_rpc_parameter)?;
+    let p1 = params.first().ok_or_else(err_illegal_rpc_parameter)?;
 
     // `from` must exist.
     let from = p1.get("from").ok_or_else(|| {
@@ -138,10 +138,10 @@ impl Middleware<CallRequest, CallResult> for WhitelistMiddleware {
                     }
                 }
                 RpcType::SendRawTX => {
-                    let p1 = request.params.get(0).ok_or_else(err_illegal_rpc_parameter)?;
+                    let p1 = request.params.first().ok_or_else(err_illegal_rpc_parameter)?;
                     let rlp_hex: String =
                         serde_json::from_value(p1.clone()).map_err(|_err| err_illegal_rpc_parameter())?;
-                    let rlp = decode(&mut rlp_hex.as_bytes()).map_err(|_err| err_failed_decode_hex(&rlp_hex))?;
+                    let rlp = decode(rlp_hex.as_bytes()).map_err(|_err| err_failed_decode_hex(&rlp_hex))?;
 
                     let tx: TxEnvelope =
                         TxEnvelope::decode_2718(&mut rlp.as_slice()).map_err(|_err| err_failed_decode_txn(&rlp_hex))?;
@@ -249,9 +249,7 @@ mod tests {
         .await
         .expect("Failed to create registry");
 
-        let middleware = WhitelistMiddleware::build(&rpc_method, &extensions).await.unwrap();
-
-        middleware
+        WhitelistMiddleware::build(&rpc_method, &extensions).await.unwrap()
     }
 
     #[tokio::test]
