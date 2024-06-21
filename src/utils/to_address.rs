@@ -1,4 +1,3 @@
-use crate::extensions::whitelist::WhiteAddress;
 use alloy_primitives::{Address, TxKind};
 use serde::{Deserialize, Deserializer};
 use std::fmt::Display;
@@ -64,20 +63,5 @@ impl From<&Address> for ToAddress {
 impl From<Address> for ToAddress {
     fn from(to: Address) -> Self {
         Self::from(&to)
-    }
-}
-
-impl WhiteAddress {
-    /// Check if this is a white address.
-    pub fn satisfy(&self, from: &Address, to: &ToAddress) -> bool {
-        self.satisfy_from_address(from) && self.satisfy_to_address(to)
-    }
-
-    pub fn satisfy_from_address(&self, from: &Address) -> bool {
-        self.from.is_none() || self.from.as_ref() == Some(from)
-    }
-
-    pub fn satisfy_to_address(&self, to: &ToAddress) -> bool {
-        self.to.is_none() || self.to.as_ref() == Some(to)
     }
 }

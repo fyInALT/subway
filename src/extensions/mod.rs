@@ -12,13 +12,13 @@ pub mod api;
 pub mod cache;
 pub mod client;
 pub mod event_bus;
+pub mod list;
 pub mod merge_subscription;
 pub mod prometheus;
 pub mod rate_limit;
 pub mod server;
 pub mod telemetry;
 pub mod validator;
-pub mod whitelist;
 
 #[async_trait]
 pub trait Extension: Sized {
@@ -146,5 +146,6 @@ define_all_extensions! {
     rate_limit: rate_limit::RateLimitBuilder,
     prometheus: prometheus::Prometheus,
     validator: validator::Validator,
-    whitelist: whitelist::Whitelist,
+    whitelist: list::Whitelist,
+    blacklist: list::BlackList,
 }

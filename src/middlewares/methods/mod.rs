@@ -2,10 +2,10 @@ pub mod block_tag;
 pub mod cache;
 pub mod delay;
 pub mod inject_params;
+pub mod list;
 pub mod response;
 pub mod upstream;
 pub mod validate;
-pub mod whitelist;
 
 #[cfg(test)]
 pub mod testing;

@@ -21,7 +21,7 @@ pub struct MethodParam {
     pub inject: bool,
 }
 
-#[derive(Deserialize, Validate, Debug)]
+#[derive(Deserialize, Validate, Debug, Clone)]
 #[garde(allow_unvalidated)]
 pub struct RpcMethod {
     pub method: String,
