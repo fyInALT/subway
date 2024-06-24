@@ -1,0 +1,18 @@
+name: label issues and PRs
+
+on:
+  - pull_request
+  - issues
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: run labeler
+        uses: srvaroa/labeler@master
+        with:
+          config_path: .github/labeler.yaml
+          use_local_config: false
+          fail_on_error: false
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
