@@ -1,0 +1,310 @@
+# Geth v1.13.15
+methods:
+  # Eth namespace (client)
+  - method: eth_chainId
+    cache:
+      size: 1
+  - method: eth_syncing
+  - method: eth_coinbase
+  - method: eth_accounts
+  - method: eth_blockNumber
+    cache:
+      ttl_seconds: 1
+  # Eth namespace (fee market)
+  - method: eth_gasPrice
+    cache:
+      size: 1
+  - method: eth_blobBaseFee
+    cache:
+      size: 1
+  - method: eth_maxPriorityFeePerGas
+    cache:
+      size: 1
+  - method: eth_feeHistory
+    params:
+      - name: blockCount
+        ty: Bytes
+      - name: newestBlock
+        ty: Boolean
+      - name: rewardPercentiles
+        ty: Bytes
+  # Eth namespace (sign)
+  - method: eth_sign
+    params:
+      - name: Address
+        ty: String
+      - name: Message
+        ty: String
+  - method: eth_signTransaction
+    params:
+      - name: Transaction
+        ty: Bytes
+  # Eth namespace (submit)
+  - method: eth_sendTransaction
+    cache:
+      size: 0
+    params:
+      - name: Transaction
+        ty: Bytes
+  - method: eth_sendRawTransaction
+    cache:
+      size: 0
+    params:
+      - name: Transaction
+        ty: Bytes
+  # Eth namespace (execute)
+  - method: eth_call
+    cache:
+      ttl_seconds: 3
+    params:
+      - name: Transaction
+        ty: Bytes
+      - name: Block
+        ty: BlockTag
+        inject: true
+  - method: eth_estimateGas
+    cache:
+      ttl_seconds: 3
+    params:
+      - name: Transaction
+        ty: Bytes
+      - name: Block
+        ty: BlockTag
+        inject: true
+  - method: eth_createAccessList
+    cache:
+      ttl_seconds: 3
+    params:
+      - name: Transaction
+        ty: Bytes
+      - name: Block
+        ty: BlockTag
+        inject: true
+  # Eth namespace (block)
+  - method: eth_getBlockByHash
+    params:
+      - name: BlockHash
+        ty: BlockHash
+      - name: FullTransactions
+        ty: Boolean
+  - method: eth_getBlockByNumber
+    params:
+      - name: Block
+        ty: BlockTag
+        inject: true
+      - name: fullTransactions
+        ty: Boolean
+  - method: eth_getBlockTransactionCountByHash
+    params:
+      - name: BlockHash
+        ty: BlockHash
+  - method: eth_getBlockTransactionCountByNumber
+    params:
+      - name: Block
+        ty: BlockTag
+        inject: true
+  - method: eth_getUncleCountByBlockHash
+    params:
+      - name: BlockHash
+        ty: BlockHash
+  - method: eth_getUncleCountByBlockNumber
+    params:
+      - name: Block
+        ty: BlockTag
+        inject: true
+  - method: eth_getBlockReceipts
+    params:
+      - name: Block
+        ty: BlockTag
+        inject: true
+  # Eth namespace (filter)
+  - method: eth_newFilter
+    cache:
+      size: 0
+    params:
+      - name: Filter
+        ty: Bytes
+  - method: eth_newBlockFilter
+    cache:
+      size: 0
+  - method: eth_newPendingTransactionFilter
+    cache:
+      size: 0
+  - method: eth_getFilterChanges
+    cache:
+      size: 0
+    params:
+      - name: FilterIdentifier
+        ty: Bytes
+  - method: eth_getFilterLogs
+    cache:
+      size: 0
+    params:
+      - name: FilterIdentifier
+        ty: Bytes
+  - method: eth_getLogs
+    cache:
+      size: 0
+    params:
+      - name: Filter
+        ty: Bytes
+  - method: eth_uninstallFilter
+    cache:
+      size: 0
+    params:
+      - name: FilterIdentifier
+        ty: Bytes
+  # Eth namespace (state)
+  - method: eth_getBalance
+    params:
+      - name: Address
+        ty: Bytes
+      - name: Block
+        ty: BlockTag
+        inject: true
+  - method: eth_getStorageAt
+    params:
+      - name: Address
+        ty: Bytes
+      - name: Position
+        ty: Bytes
+      - name: Block
+        ty: BlockTag
+        inject: true
+  - method: eth_getTransactionCount
+    cache:
+      ttl_seconds: 3
+    params:
+      - name: Address
+        ty: Bytes
+      - name: Block
+        ty: BlockTag
+        inject: true
+  - method: eth_getCode
+    params:
+      - name: Address
+        ty: Bytes
+      - name: Block
+        ty: BlockTag
+        inject: true
+  - method: eth_getProof
+    params:
+      - name: Address
+        ty: Bytes
+      - name: Keys
+        ty: Bytes
+      - name: Block
+        ty: BlockTag
+        inject: true
+  # Eth namespace (transaction)
+  - method: eth_getTransactionByHash
+    params:
+      - name: TransactionHash
+        ty: Bytes
+  - method: eth_getTransactionByBlockHashAndIndex
+    params:
+      - name: BlockHash
+        ty: BlockHash
+      - name: TransactionIndex
+        ty: Bytes
+  - method: eth_getTransactionByBlockNumberAndIndex
+    params:
+      - name: Block
+        ty: BlockTag
+        inject: true
+      - name: TransactionIndex
+        ty: HexNumber
+  - method: eth_getTransactionReceipt
+    params:
+      - name: TransactionHash
+        ty: Bytes
+
+  # Debug namespace (standard)
+  - method: debug_getBadBlocks
+    cache:
+      ttl_seconds: 3
+      size: 1
+  - method: debug_getRawBlock
+    params:
+      - name: Block
+        ty: BlockTag
+        inject: true
+  - method: debug_getRawHeader
+    params:
+      - name: Block
+        ty: BlockTag
+        inject: true
+  - method: debug_getRawReceipts
+    params:
+      - name: Block
+        ty: BlockTag
+        inject: true
+  - method: debug_getRawTransaction
+    params:
+      - name: TransactionHash
+        ty: Bytes
+
+  # Debug namespace (Geth-specified)
+  - method: debug_accountRange
+  - method: debug_storageRangeAt
+  - method: debug_chaindbCompact
+  - method: debug_chaindbProperty
+  - method: debug_dbAncient
+  - method: debug_dbAncients
+  - method: debug_dbGet
+  - method: debug_dumpBlock
+  - method: debug_getAccessibleState
+  - method: debug_getModifiedAccountsByHash
+  - method: debug_getModifiedAccountsByNumber
+  - method: debug_preimage
+  - method: debug_printBlock
+  - method: debug_setHead
+  - method: debug_setTrieFlushInterval
+  - method: debug_getTrieFlushInterval
+    cache:
+      ttl_seconds: 3
+      size: 1
+  # Debug (trace) namespace (Geth-specified)
+  - method: debug_intermediateRoots
+  - method: debug_standardTraceBlockToFile
+  - method: debug_standardTraceBadBlockToFile
+  - method: debug_traceBadBlock
+  - method: debug_traceBlock
+  - method: debug_traceBlockByNumber
+  - method: debug_traceBlockByHash
+  - method: debug_traceBlockFromFile
+  - method: debug_traceCall
+  - method: debug_traceChain
+  - method: debug_traceTransaction
+
+  # Txpool namespace (Geth-specified)
+  - method: txpool_content
+    cache:
+      ttl_seconds: 3
+      size: 1
+  - method: txpool_contentFrom
+    cache:
+      ttl_seconds: 3
+    params:
+      - name: Address
+        ty: Bytes
+  - method: txpool_inspect
+    cache:
+      ttl_seconds: 3
+      size: 1
+  - method: txpool_status
+    cache:
+      ttl_seconds: 3
+      size: 1
+
+  # Net namespace (Geth-specified)
+  - method: net_listening
+  - method: net_peerCount
+  - method: net_version
+    cache:
+      size: 1
+
+subscriptions:
+  - subscribe: eth_subscribe
+    unsubscribe: eth_unsubscribe
+    name: eth_subscription

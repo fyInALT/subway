@@ -1,12 +1,15 @@
 extensions:
   client:
     endpoints:
-      - wss://cyber-testnet.alt.technology/ws
-  event_bus:
+      - wss://op-demo.alt.technology/ws
   eth_api:
     stale_timeout_seconds: 180 # rotate endpoint if no new blocks for 3 minutes
   telemetry:
     provider: none
+  prometheus:
+    port: 9616
+    listen_address: "0.0.0.0"
+    prefix: "subway"
   cache:
     default_ttl_seconds: 60
     default_size: 500
@@ -48,4 +51,4 @@ middlewares:
   subscriptions:
     - upstream
 
-rpcs: ethereum
+rpcs: rpc_configs/geth.yml
