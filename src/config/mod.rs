@@ -16,6 +16,7 @@ const SUBSTRATE_CONFIG: &str = include_str!("../../rpc_configs/substrate.yml");
 const ETHEREUM_CONFIG: &str = include_str!("../../rpc_configs/ethereum.yml");
 
 #[derive(Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
 pub struct RpcDefinitionsWithBase {
     #[serde(default)]
     pub base: Option<RpcOptions>,
@@ -113,6 +114,7 @@ impl From<RpcOptions> for RpcDefinitions {
 }
 
 #[derive(Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
 pub struct MiddlewaresConfig {
     pub methods: Vec<String>,
     pub subscriptions: Vec<String>,
@@ -129,6 +131,7 @@ pub struct Config {
 }
 
 #[derive(Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
 pub struct ParseConfig {
     pub extensions: ExtensionsConfig,
     pub middlewares: MiddlewaresConfig,

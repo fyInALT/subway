@@ -3,6 +3,7 @@ use jsonrpsee::core::JsonValue;
 use serde::Deserialize;
 
 #[derive(Clone, Deserialize, Debug, Eq, PartialEq)]
+#[serde(deny_unknown_fields)]
 pub struct CacheParams {
     #[serde(default)]
     pub size: Option<usize>,
@@ -11,6 +12,7 @@ pub struct CacheParams {
 }
 
 #[derive(Clone, Deserialize, Debug, Eq, PartialEq)]
+#[serde(deny_unknown_fields)]
 pub struct MethodParam {
     pub name: String,
     #[serde(default)]
@@ -23,6 +25,7 @@ pub struct MethodParam {
 
 #[derive(Deserialize, Validate, Debug, Clone)]
 #[garde(allow_unvalidated)]
+#[serde(deny_unknown_fields)]
 pub struct RpcMethod {
     pub method: String,
 
@@ -90,6 +93,7 @@ pub enum MergeStrategy {
 }
 
 #[derive(Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
 pub struct RpcSubscription {
     pub subscribe: String,
     pub unsubscribe: String,
@@ -101,6 +105,7 @@ pub struct RpcSubscription {
 
 #[derive(Deserialize, Validate, Debug)]
 #[garde(allow_unvalidated)]
+#[serde(deny_unknown_fields)]
 pub struct RpcDefinitions {
     #[garde(dive)]
     pub methods: Vec<RpcMethod>,

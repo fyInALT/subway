@@ -36,7 +36,6 @@ methods:
     cache:
       size: 1
       ttl_seconds: 6
-      invalidate_at: OnNewFinalizedHead
 
   - method: state_getRuntimeVersion
     params:

@@ -80,6 +80,7 @@ macro_rules! define_all_extensions {
         use garde::Validate;
         #[derive(Deserialize, Debug, Validate, Default)]
         #[garde(allow_unvalidated)]
+        #[serde(deny_unknown_fields)]
         pub struct ExtensionsConfig {
             $(
                 $(#[$attr])*
