@@ -1,10 +1,16 @@
-use std::env;
+use std::{env, time::Duration};
 
 use async_trait::async_trait;
+use opentelemetry::KeyValue;
 use opentelemetry::{global, trace::TraceError};
-use opentelemetry_otlp::WithExportConfig;
+use opentelemetry_otlp::{Protocol, WithExportConfig};
 use opentelemetry_sdk::trace::Tracer;
+use opentelemetry_sdk::{
+    trace::{self, RandomIdGenerator, Sampler},
+    Resource,
+};
 use serde::Deserialize;
+use tonic::transport::channel::ClientTlsConfig;
 
 use super::{Extension, ExtensionRegistry};
 
@@ -62,16 +68,32 @@ pub fn setup_telemetry(options: &TelemetryConfig) -> Result<Option<Tracer>, Trac
 
     let tracer = match options.provider {
         TelemetryProvider::OTLP => {
-            let tracer = opentelemetry_otlp::new_pipeline().tracing();
-
-            let mut exporter = opentelemetry_otlp::new_exporter().tonic();
-
+            let mut exporter = opentelemetry_otlp::new_exporter()
+                .tonic()
+                .with_tls_config(ClientTlsConfig::new())
+                .with_protocol(Protocol::Grpc)
+                .with_timeout(Duration::from_secs(3));
             if let Some(ref agent_endpoint) = options.agent_endpoint {
                 exporter = exporter.with_endpoint(agent_endpoint.clone());
             }
 
-            let tracer = tracer
+            let resource = match options.service_name.as_ref() {
+                Some(service_name) => Resource::new(vec![KeyValue::new("service.name", service_name.clone())]),
+                None => Resource::new(vec![KeyValue::new("service.name", "subway")]),
+            };
+
+            let trace_config = trace::config()
+                .with_resource(resource)
+                .with_sampler(Sampler::AlwaysOn)
+                .with_id_generator(RandomIdGenerator::default())
+                .with_max_events_per_span(64)
+                .with_max_attributes_per_span(16)
+                .with_max_events_per_span(16);
+
+            let tracer = opentelemetry_otlp::new_pipeline()
+                .tracing()
                 .with_exporter(exporter)
+                .with_trace_config(trace_config)
                 .install_batch(opentelemetry_sdk::runtime::Tokio)?;
 
             Some(tracer)

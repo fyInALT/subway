@@ -5,7 +5,7 @@ extensions:
   eth_api:
     stale_timeout_seconds: 180 # rotate endpoint if no new blocks for 3 minutes
   telemetry:
-    provider: none
+    provider: otlp
   prometheus:
     port: 9616
     listen_address: "0.0.0.0"

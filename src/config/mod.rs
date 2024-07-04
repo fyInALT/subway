@@ -14,6 +14,7 @@ mod rpc;
 
 const SUBSTRATE_CONFIG: &str = include_str!("../../rpc_configs/substrate.yml");
 const ETHEREUM_CONFIG: &str = include_str!("../../rpc_configs/ethereum.yml");
+const GETH_CONFIG: &str = include_str!("../../rpc_configs/geth.yml");
 
 #[derive(Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
@@ -102,6 +103,7 @@ impl From<RpcOptions> for RpcDefinitions {
             RpcOptions::Path(path) => match path.to_lowercase().as_str() {
                 "sub" | "substrate" => serde_yaml::from_str(SUBSTRATE_CONFIG).unwrap(),
                 "eth" | "ethereum" => serde_yaml::from_str(ETHEREUM_CONFIG).unwrap(),
+                "geth" => serde_yaml::from_str(GETH_CONFIG).unwrap(),
                 _ => {
                     let file = fs::File::open(path).expect("Invalid rpc config path");
                     let defs: RpcDefinitionsWithBase = serde_yaml::from_reader(file).expect("Invalid rpc config file");
