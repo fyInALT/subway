@@ -4,6 +4,7 @@ extensions:
       - wss://op-demo.alt.technology/ws
   eth_api:
     stale_timeout_seconds: 180 # rotate endpoint if no new blocks for 3 minutes
+    finalized_interval_seconds: 10 # get finalized head every 10 seconds
   telemetry:
     provider: otlp
   prometheus:

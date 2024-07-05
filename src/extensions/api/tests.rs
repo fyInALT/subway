@@ -354,7 +354,7 @@ async fn eth_background_tasks_abort_on_drop() {
     let (addr, _server, mut subscription_rx, mut block_rx) = create_eth_server().await;
     let client = Arc::new(Client::with_endpoints([format!("ws://{addr}")]).unwrap());
 
-    let api = EthApi::new(client, std::time::Duration::from_millis(100));
+    let api = EthApi::new(client, std::time::Duration::from_millis(100), None);
 
     // background tasks started
     let block_req = block_rx.recv().await.unwrap();

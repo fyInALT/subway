@@ -166,7 +166,7 @@ mod tests {
         let (addr, _server) = builder.build().await;
 
         let client = Client::with_endpoints([format!("ws://{addr}")]).unwrap();
-        let api = EthApi::new(Arc::new(client), Duration::from_secs(100));
+        let api = EthApi::new(Arc::new(client), Duration::from_secs(100), None);
 
         (
             ExecutionContext {
