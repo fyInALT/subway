@@ -1,3 +1,5 @@
+use std::{future::Future, net::SocketAddr, str::FromStr, sync::Arc};
+
 use async_trait::async_trait;
 use futures::FutureExt;
 use http::header::HeaderValue;
@@ -6,27 +8,24 @@ use jsonrpsee::server::{
     RandomStringIdProvider, RpcModule, ServerHandle, StopHandle, TowerServiceBuilder,
 };
 use jsonrpsee::Methods;
-use tokio::net::TcpListener;
-
+use opentelemetry::{trace::FutureExt as _, KeyValue};
 use serde::Deserialize;
-
-use std::str::FromStr;
-use std::sync::Arc;
-use std::{future::Future, net::SocketAddr};
-use tower::layer::layer_fn;
-use tower::Service;
+use tokio::net::TcpListener;
+use tower::{layer::layer_fn, Service};
 use tower_http::cors::{AllowOrigin, CorsLayer};
-
-use super::{Extension, ExtensionRegistry};
-use crate::extensions::rate_limit::{MethodWeights, RateLimitBuilder, XFF};
-pub use prometheus::Protocol;
 
 mod prometheus;
 mod proxy_get_request;
 
+pub use self::prometheus::Protocol;
+use self::proxy_get_request::{ProxyGetRequestLayer, ProxyGetRequestMethod};
 use crate::extensions::prometheus::RpcMetrics;
+use crate::extensions::rate_limit::{MethodWeights, RateLimitBuilder, XFF};
 use crate::extensions::server::prometheus::PrometheusService;
-use proxy_get_request::{ProxyGetRequestLayer, ProxyGetRequestMethod};
+use crate::extensions::{Extension, ExtensionRegistry};
+use crate::utils::telemetry;
+
+const TRACER: telemetry::Tracer = telemetry::Tracer::new("server");
 
 pub struct SubwayServerBuilder {
     pub config: ServerConfig,
@@ -216,6 +215,7 @@ impl SubwayServerBuilder {
                     if let Some(true) = rate_limit_builder.as_ref().map(|r| r.use_xff()) {
                         socket_ip = req.xxf_ip().unwrap_or(socket_ip);
                     }
+                    let socket_ip_clone = socket_ip.clone();
 
                     let call_metrics = rpc_metrics.call_metrics();
 
@@ -225,7 +225,7 @@ impl SubwayServerBuilder {
                                 .option_layer(
                                     rate_limit_builder
                                         .as_ref()
-                                        .and_then(|r| r.ip_limit(socket_ip, rpc_method_weights.clone())),
+                                        .and_then(|r| r.ip_limit(socket_ip_clone, rpc_method_weights.clone())),
                                 )
                                 .option_layer(
                                     rate_limit_builder
@@ -251,6 +251,7 @@ impl SubwayServerBuilder {
 
                         service.call(req).await.map_err(|e| anyhow::anyhow!("{:?}", e))
                     }
+                    .with_context(TRACER.context_with_attrs("remote", [KeyValue::new("ip", socket_ip)]))
                     .boxed()
                 });
 

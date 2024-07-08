@@ -3,7 +3,7 @@ use std::num::NonZeroUsize;
 use async_trait::async_trait;
 use blake2::Blake2b512;
 use futures::FutureExt as _;
-use opentelemetry::trace::FutureExt;
+use opentelemetry::{trace::FutureExt, KeyValue};
 
 use crate::extensions::prometheus::{get_rpc_metrics, RpcMetrics};
 use crate::{
@@ -73,8 +73,8 @@ impl Middleware<CallRequest, CallResult> for CacheMiddleware {
         context: TypeRegistry,
         next: NextFn<CallRequest, CallResult>,
     ) -> CallResult {
+        let bypass_cache = context.get::<BypassCache>().map(|v| v.0).unwrap_or(false);
         async move {
-            let bypass_cache = context.get::<BypassCache>().map(|v| v.0).unwrap_or(false);
             if bypass_cache {
                 return next(request, context).await;
             }
@@ -106,7 +106,7 @@ impl Middleware<CallRequest, CallResult> for CacheMiddleware {
 
             result
         }
-        .with_context(TRACER.context("cache"))
+        .with_context(TRACER.context_with_attrs("cache", [KeyValue::new("hit", !bypass_cache)]))
         .await
     }
 }

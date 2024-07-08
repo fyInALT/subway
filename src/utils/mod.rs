@@ -46,7 +46,7 @@ pub mod telemetry {
     use jsonrpsee::{types::error::ErrorCode, types::ErrorObjectOwned};
     use opentelemetry::{
         global::{self, BoxedSpan},
-        trace::{get_active_span, Status, TraceContextExt, Tracer as _},
+        trace::{get_active_span, Span, Status, TraceContextExt, Tracer as _},
         Context, KeyValue,
     };
     use std::borrow::Cow;
@@ -65,6 +65,16 @@ pub mod telemetry {
 
         pub fn context(&self, span_name: impl Into<Cow<'static, str>>) -> Context {
             let span = self.span(span_name);
+            Context::current_with_span(span)
+        }
+
+        pub fn context_with_attrs(
+            &self,
+            span_name: impl Into<Cow<'static, str>>,
+            span_attrs: impl IntoIterator<Item = KeyValue>,
+        ) -> Context {
+            let mut span = self.span(span_name);
+            span.set_attributes(span_attrs);
             Context::current_with_span(span)
         }
 
