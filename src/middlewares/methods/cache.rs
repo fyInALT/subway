@@ -3,7 +3,10 @@ use std::num::NonZeroUsize;
 use async_trait::async_trait;
 use blake2::Blake2b512;
 use futures::FutureExt as _;
-use opentelemetry::{trace::FutureExt, KeyValue};
+use opentelemetry::{
+    trace::{get_active_span, FutureExt, Span, TraceContextExt},
+    Context, KeyValue,
+};
 
 use crate::extensions::prometheus::{get_rpc_metrics, RpcMetrics};
 use crate::{
@@ -73,31 +76,38 @@ impl Middleware<CallRequest, CallResult> for CacheMiddleware {
         context: TypeRegistry,
         next: NextFn<CallRequest, CallResult>,
     ) -> CallResult {
-        let bypass_cache = context.get::<BypassCache>().map(|v| v.0).unwrap_or(false);
-        async move {
-            if bypass_cache {
-                return next(request, context).await;
-            }
+        let mut span = TRACER.span("cache");
 
-            let metrics = self.metrics.clone();
+        let bypass_cache = context.get::<BypassCache>().map(|v| v.0).unwrap_or(false);
+        if bypass_cache {
+            span.set_attributes([KeyValue::new("bypass", true), KeyValue::new("hit", false)]);
+            return next(request, context)
+                .with_context(Context::current_with_span(span))
+                .await;
+        }
+
+        span.set_attribute(KeyValue::new("bypass", false));
+        let mut hit = true;
+
+        async move {
             let key = CacheKey::<Blake2b512>::new(&request.method, &request.params);
 
-            let method = request.method.to_string();
-            metrics.cache_query(&method);
+            let metrics = self.metrics.clone();
+            metrics.cache_query(&request.method);
 
             let result = self
                 .cache
                 .get_or_insert_with(key.clone(), || {
-                    async move {
-                        metrics.cache_miss(&method);
-                        next(request, context).await
-                    }
-                    .boxed()
+                    hit = false;
+                    metrics.cache_miss(&request.method);
+                    next(request, context).boxed()
                 })
                 .await;
 
+            get_active_span(|span| span.set_attribute(KeyValue::new("hit", hit)));
+
             if let Ok(ref value) = result {
-                // avoid caching null value because it usually means data not available
+                // avoid caching null value because it usually means data not available,
                 // but it could be available in the future
                 if value.is_null() {
                     self.cache.remove(&key).await;
@@ -106,7 +116,7 @@ impl Middleware<CallRequest, CallResult> for CacheMiddleware {
 
             result
         }
-        .with_context(TRACER.context_with_attrs("cache", [KeyValue::new("hit", !bypass_cache)]))
+        .with_context(Context::current_with_span(span))
         .await
     }
 }

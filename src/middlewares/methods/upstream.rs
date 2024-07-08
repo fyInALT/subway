@@ -1,8 +1,7 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use opentelemetry::trace::FutureExt;
-use opentelemetry::KeyValue;
+use opentelemetry::{trace::FutureExt, KeyValue};
 
 use crate::{
     extensions::client::Client,

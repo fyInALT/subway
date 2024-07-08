@@ -1,16 +1,13 @@
-use std::{env, time::Duration};
+use std::env;
 
 use async_trait::async_trait;
-use opentelemetry::KeyValue;
-use opentelemetry::{global, trace::TraceError};
-use opentelemetry_otlp::{Protocol, WithExportConfig};
-use opentelemetry_sdk::trace::Tracer;
+use opentelemetry::{global, trace::TraceError, KeyValue};
+use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::{
-    trace::{self, RandomIdGenerator, Sampler},
+    trace::{self, RandomIdGenerator, Sampler, Tracer},
     Resource,
 };
 use serde::Deserialize;
-use tonic::transport::channel::ClientTlsConfig;
 
 use super::{Extension, ExtensionRegistry};
 
@@ -68,11 +65,7 @@ pub fn setup_telemetry(options: &TelemetryConfig) -> Result<Option<Tracer>, Trac
 
     let tracer = match options.provider {
         TelemetryProvider::OTLP => {
-            let mut exporter = opentelemetry_otlp::new_exporter()
-                .tonic()
-                .with_tls_config(ClientTlsConfig::new())
-                .with_protocol(Protocol::Grpc)
-                .with_timeout(Duration::from_secs(3));
+            let mut exporter = opentelemetry_otlp::new_exporter().tonic();
             if let Some(ref agent_endpoint) = options.agent_endpoint {
                 exporter = exporter.with_endpoint(agent_endpoint.clone());
             }
