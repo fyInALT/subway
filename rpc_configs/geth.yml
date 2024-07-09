@@ -304,6 +304,12 @@ methods:
     cache:
       size: 1
 
+  # Web3 namespace (Geth-specified)
+  - method: web3_clientVersion
+    cache:
+      size: 1
+  - method: web3_sha3
+
 subscriptions:
   - subscribe: eth_subscribe
     unsubscribe: eth_unsubscribe
