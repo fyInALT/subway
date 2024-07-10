@@ -100,7 +100,6 @@ impl ItemChecker for BlacklistChecker {
                 return false;
             }
         }
-
         true
     }
 
@@ -140,7 +139,6 @@ impl ItemChecker for WhitelistChecker {
                 return true;
             }
         }
-
         false
     }
 
@@ -694,6 +692,134 @@ params:
                 request: request::eth_call_with_to(TxKind::Call(address!("0000000000000000000000000000000000000001"))),
                 expected_res: Err(err_unknown_from_address()),
                 config: whitelist.clone(),
+            },
+        ];
+
+        for (n, case) in cases.iter().enumerate() {
+            case.assert(&rpc_method, n).await;
+        }
+    }
+
+    #[tokio::test]
+    async fn test_address_glob() {
+        let rpc_method = r"
+method: eth_sendTransaction
+cache:
+    size: 0
+params:
+    - name: transaction
+      ty: Object
+";
+
+        let rpc_method: RpcMethod = serde_yaml::from_reader(&mut rpc_method.as_bytes()).unwrap();
+
+        let config = r#"
+    tx:
+      - from: 0000000000000000000000000000000000000001
+        to: anyAddress
+      - from: 0000000000000000000000000000000000000002
+        to: '*000000000000000000000000000000000000000[0-9]'
+      - from: 0xff*
+        to: create
+"#;
+        let blacklist = Config::Blacklist(serde_yaml::from_reader(&mut config.as_bytes()).unwrap());
+        let whitelist = Config::Whitelist(serde_yaml::from_reader(&mut config.as_bytes()).unwrap());
+
+        let ok_res = Ok(Value::Null);
+        let cases = vec![
+            // whitelist
+            Case {
+                // transfer to self
+                request: request::tx(
+                    address!("0000000000000000000000000000000000000001"),
+                    TxKind::Call(address!("0000000000000000000000000000000000000001")),
+                ),
+                expected_res: ok_res.clone(),
+                config: whitelist.clone(),
+            },
+            Case {
+                request: request::tx(
+                    address!("0000000000000000000000000000000000000002"),
+                    TxKind::Call(address!("0000000000000000000000000000000000000001")),
+                ),
+                expected_res: ok_res.clone(),
+                config: whitelist.clone(),
+            },
+            Case {
+                request: request::tx(
+                    address!("0000000000000000000000000000000000000002"),
+                    TxKind::Call(address!("0000000000000000000000000000000000000009")),
+                ),
+                expected_res: ok_res.clone(),
+                config: whitelist.clone(),
+            },
+            Case {
+                request: request::tx(
+                    address!("0000000000000000000000000000000000000002"),
+                    TxKind::Call(address!("0000000000000000000000000000000000000011")),
+                ),
+                expected_res: Err(err_banned_address()),
+                config: whitelist.clone(),
+            },
+            Case {
+                request: request::tx(
+                    address!("ff00000000000000000000000000000000000000"),
+                    TxKind::Call(address!("0000000000000000000000000000000000000001")),
+                ),
+                expected_res: Err(err_banned_address()),
+                config: whitelist.clone(),
+            },
+            Case {
+                request: request::tx(address!("ff00000000000000000000000000000000000000"), TxKind::Create),
+                expected_res: ok_res.clone(),
+                config: whitelist.clone(),
+            },
+            // blacklist
+            Case {
+                // transfer to self
+                request: request::tx(
+                    address!("0000000000000000000000000000000000000001"),
+                    TxKind::Call(address!("0000000000000000000000000000000000000001")),
+                ),
+                expected_res: Err(err_banned_address()),
+                config: blacklist.clone(),
+            },
+            Case {
+                request: request::tx(
+                    address!("0000000000000000000000000000000000000002"),
+                    TxKind::Call(address!("0000000000000000000000000000000000000001")),
+                ),
+                expected_res: Err(err_banned_address()),
+                config: blacklist.clone(),
+            },
+            Case {
+                request: request::tx(
+                    address!("0000000000000000000000000000000000000002"),
+                    TxKind::Call(address!("0000000000000000000000000000000000000009")),
+                ),
+                expected_res: Err(err_banned_address()),
+                config: blacklist.clone(),
+            },
+            Case {
+                request: request::tx(
+                    address!("0000000000000000000000000000000000000002"),
+                    TxKind::Call(address!("1000000000000000000000000000000000001111")),
+                ),
+                expected_res: ok_res.clone(),
+                config: blacklist.clone(),
+            },
+            Case {
+                request: request::tx(
+                    address!("ff00000000000000000000000000000000000000"),
+                    TxKind::Call(address!("0000000000000000000000000000000000000001")),
+                ),
+                expected_res: ok_res.clone(),
+                config: blacklist.clone(),
+            },
+            Case {
+                request: request::tx(address!("ff00000000000000000000000000000000000000"), TxKind::Create),
+                expected_res: Err(err_banned_address()),
+                config: blacklist.clone(),
             },
         ];
 

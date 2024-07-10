@@ -23,16 +23,21 @@ extensions:
     cors: all
   whitelist:
     eth_call:
-      # allow 0x01 to call 0x02.
+      # allow 0x01 to create contract.
       - from: 0000000000000000000000000000000000000001
-        to: 0000000000000000000000000000000000000002
+        to: create
       # allow anyone to call 0x02.
       - to: 0000000000000000000000000000000000000002
+      # allow anyone to call any address(not including create contract)
+      - to: anyAddress
     tx:
       # allow 0x01 to send tx to anyone.
       - from: 0000000000000000000000000000000000000001
-      # allow 0x02 to send tx to create a contract.
+      # allow 0x02 to send tx to create contract.
       - from: 0000000000000000000000000000000000000002
+        to: create
+      # allow 0xff... address to create contract
+      - from: 0xff*
         to: create
   blacklist:
     eth_call:
