@@ -212,10 +212,12 @@ impl SubwayServerBuilder {
                     let protocol = if is_websocket { Protocol::Ws } else { Protocol::Http };
 
                     let mut socket_ip = remote_addr.ip().to_string();
+                    let xff_ip = req.xxf_ip().unwrap_or(socket_ip.clone());
+                    let path = req.uri().path().to_string();
+
                     if let Some(true) = rate_limit_builder.as_ref().map(|r| r.use_xff()) {
                         socket_ip = req.xxf_ip().unwrap_or(socket_ip);
                     }
-                    let socket_ip_clone = socket_ip.clone();
 
                     let call_metrics = rpc_metrics.call_metrics();
 
@@ -225,7 +227,7 @@ impl SubwayServerBuilder {
                                 .option_layer(
                                     rate_limit_builder
                                         .as_ref()
-                                        .and_then(|r| r.ip_limit(socket_ip_clone, rpc_method_weights.clone())),
+                                        .and_then(|r| r.ip_limit(socket_ip, rpc_method_weights.clone())),
                                 )
                                 .option_layer(
                                     rate_limit_builder
@@ -251,7 +253,9 @@ impl SubwayServerBuilder {
 
                         service.call(req).await.map_err(|e| anyhow::anyhow!("{:?}", e))
                     }
-                    .with_context(TRACER.context_with_attrs("remote", [KeyValue::new("ip", socket_ip)]))
+                    .with_context(
+                        TRACER.context_with_attrs("remote", [KeyValue::new("ip", xff_ip), KeyValue::new("path", path)]),
+                    )
                     .boxed()
                 });
 

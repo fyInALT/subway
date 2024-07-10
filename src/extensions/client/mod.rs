@@ -447,7 +447,13 @@ impl Client {
 
             rx.await.map_err(errors::internal_error)?.map_err(errors::map_error)
         }
-        .with_context(TRACER.context_with_attrs("client", [KeyValue::new("params", request_params)]))
+        .with_context(TRACER.context_with_attrs(
+            "client",
+            [
+                KeyValue::new("params", request_params),
+                KeyValue::new("endpoint", self.endpoints[0].clone()),
+            ],
+        ))
         .await
     }
 
