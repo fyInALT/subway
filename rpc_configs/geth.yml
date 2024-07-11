@@ -25,7 +25,8 @@ methods:
       - name: blockCount
         ty: Bytes
       - name: newestBlock
-        ty: Boolean
+        ty: BlockTag
+        inject: true
       - name: rewardPercentiles
         ty: Bytes
   # Eth namespace (sign)
