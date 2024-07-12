@@ -19,7 +19,7 @@
                     "kind": "bin"
                 }
             },
-            "args": [],
+            "args": ["--config", "configs/demo_config.yml"],
             "cwd": "${workspaceFolder}"
         },
         {

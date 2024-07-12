@@ -117,7 +117,7 @@ where
     D: Deserializer<'de>,
 {
     let s = <String>::deserialize(deserializer)?;
-    if &s == "any_address" || &s == "anyAddress" || &s == "any" {
+    if &s == "any_address" || &s == "anyAddress" {
         Ok(())
     } else {
         Err(serde::de::Error::custom("invalid `to` field"))

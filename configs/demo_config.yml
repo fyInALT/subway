@@ -32,11 +32,11 @@ extensions:
       # - to: 0000000000000000000000000000000000000002
       # allow anyone to call any address(not including create contract)
       # - to: "*"
-      - from: any
-        to: any
+      - from: anyAddress
+        to: anyAddress
     tx:
-      - from: any
-        to: any
+      - from: anyAddress
+        to: anyAddress
       # allow 0x01 to send tx to anyone.
       # - from: 0000000000000000000000000000000000000001
       # allow 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 to send tx to create contract.
