@@ -42,7 +42,7 @@ impl BlockTagMiddleware {
 
     async fn replace(&self, mut request: CallRequest, mut context: TypeRegistry) -> (CallRequest, TypeRegistry) {
         let maybe_value = {
-            if let Some(param) = request.params.get(self.index).cloned() {
+            if let Some(param) = request.params.get(self.index) {
                 if !param.is_string() {
                     // nothing to do here
                     return (request, context);

@@ -145,7 +145,7 @@ impl<D: Digest + 'static> Cache<D> {
     }
 
     pub async fn remove(&self, key: &CacheKey<D>) {
-        self.cache.remove(key).await;
+        self.cache.invalidate(key).await;
     }
 
     pub async fn sync(&self) {
