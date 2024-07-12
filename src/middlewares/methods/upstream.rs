@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use opentelemetry::{trace::FutureExt, KeyValue};
+use opentelemetry::trace::FutureExt;
 
 use crate::{
     extensions::client::Client,
@@ -42,10 +42,9 @@ impl Middleware<CallRequest, CallResult> for UpstreamMiddleware {
         _context: TypeRegistry,
         _next: NextFn<CallRequest, CallResult>,
     ) -> CallResult {
-        let request_params = serde_json::to_string(&request.params).expect("serialize JSON value shouldn't be fail");
         self.client
             .request(&request.method, request.params)
-            .with_context(TRACER.context_with_attrs("upstream", [KeyValue::new("params", request_params)]))
+            .with_context(TRACER.context("upstream"))
             .await
     }
 }

@@ -1,7 +1,9 @@
 extensions:
   client:
     endpoints:
-      - wss://op-demo.alt.technology/ws
+      # run anvil -b 5 --slots-in-an-epoch 1 --port 8547
+      - ws://127.0.0.1:8547
+      # - wss://op-demo.alt.technology/ws
   eth_api:
     stale_timeout_seconds: 180 # rotate endpoint if no new blocks for 3 minutes
     finalized_interval_seconds: 10 # get finalized head every 10 seconds
@@ -17,28 +19,32 @@ extensions:
     default_size: 500
   server:
     port: 8545
-    listen_address: '0.0.0.0'
+    listen_address: "0.0.0.0"
     max_connections: 2000
     max_batch_size: 10
     cors: all
   whitelist:
     eth_call:
       # allow 0x01 to create contract.
-      - from: 0000000000000000000000000000000000000001
-        to: create
+      # - from: 0000000000000000000000000000000000000001
+      #   to: create
       # allow anyone to call 0x02.
-      - to: 0000000000000000000000000000000000000002
+      # - to: 0000000000000000000000000000000000000002
       # allow anyone to call any address(not including create contract)
-      - to: anyAddress
+      # - to: "*"
+      - from: any
+        to: any
     tx:
+      - from: any
+        to: any
       # allow 0x01 to send tx to anyone.
-      - from: 0000000000000000000000000000000000000001
-      # allow 0x02 to send tx to create contract.
-      - from: 0000000000000000000000000000000000000002
+      # - from: 0000000000000000000000000000000000000001
+      # allow 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 to send tx to create contract.
+      - from: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
         to: create
       # allow 0xff... address to create contract
-      - from: 0xff*
-        to: create
+      # - from: 0xff*
+        # to: create
   blacklist:
     eth_call:
       # not allow 0x02 to call 0x01.
@@ -46,7 +52,8 @@ extensions:
         to: 0000000000000000000000000000000000000001
     tx:
       # not allow 0x03 to send tx.
-      - from: 0000000000000000000000000000000000000003
+      - from: 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+      - to: 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC
 middlewares:
   methods:
     - whitelist

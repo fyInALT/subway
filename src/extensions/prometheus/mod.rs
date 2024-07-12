@@ -1,16 +1,18 @@
 mod rpc_metrics;
 
-use super::{Extension, ExtensionRegistry};
+use std::{iter, net::SocketAddr};
+
 use async_trait::async_trait;
 use serde::Deserialize;
-use std::iter;
-use std::net::SocketAddr;
-use substrate_prometheus_endpoint::init_prometheus;
-use substrate_prometheus_endpoint::Registry;
+use substrate_prometheus_endpoint::{init_prometheus, Gauge, Opts, Registry, U64};
 use tokio::task::JoinHandle;
 
-use crate::utils::TypeRegistryRef;
-pub use rpc_metrics::RpcMetrics;
+pub use self::rpc_metrics::RpcMetrics;
+use crate::{
+    build_info,
+    extensions::{Extension, ExtensionRegistry},
+    utils::TypeRegistryRef,
+};
 
 pub async fn get_rpc_metrics(registry: &TypeRegistryRef) -> RpcMetrics {
     let prometheus = registry.read().await.get::<Prometheus>();
@@ -59,11 +61,30 @@ impl Prometheus {
 
         // make sure the prefix is not an Option of Some empty string
         let prefix = match config.prefix {
-            Some(p) if p.is_empty() => None,
+            Some(p) if p.is_empty() => Some("subway".to_string()),
             p => p,
         };
         let registry = Registry::new_custom(prefix, labels)
             .expect("It can't fail, we make sure the `prefix` is either `None` or `Some` of non-empty string");
+
+        // add subway info metric
+        let info_gauge = Gauge::<U64>::with_opts(
+            Opts::new("info", "Subway release info")
+                .const_label(
+                    "version",
+                    build_info::GIT_VERSION.unwrap_or(env!("CARGO_PKG_VERSION")).to_string(),
+                )
+                .const_label(
+                    "commit",
+                    build_info::GIT_COMMIT_HASH_SHORT.unwrap_or("unknown").to_string(),
+                )
+                .const_label("rustc", build_info::RUSTC_VERSION.to_string()),
+        )
+        .expect("Failed to create version gauge");
+        registry
+            .register(Box::new(info_gauge))
+            .expect("Failed to register version gauge");
+
         let rpc_metrics = RpcMetrics::new(&registry);
 
         let exporter_task = start_prometheus_exporter(registry.clone(), config.port, config.listen_address);

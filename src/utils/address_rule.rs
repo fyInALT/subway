@@ -36,6 +36,8 @@ pub enum ToAddressRule {
 #[derive(Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum FromAddressRule {
+    #[serde(deserialize_with = "deserialize_any_address")]
+    AnyAddress,
     Address(Address),
     #[serde(deserialize_with = "deserialize_address_glob")]
     AddressGlob(Pattern),
@@ -44,6 +46,7 @@ pub enum FromAddressRule {
 impl FromAddressRule {
     pub fn satisfy(&self, addr: &Address) -> bool {
         match self {
+            Self::AnyAddress => true,
             Self::Address(address) => address == addr,
             Self::AddressGlob(pattern) => pattern.matches_with(addr.to_string().as_str(), OPT),
         }
@@ -114,7 +117,7 @@ where
     D: Deserializer<'de>,
 {
     let s = <String>::deserialize(deserializer)?;
-    if &s == "any_address" || &s == "anyAddress" {
+    if &s == "any_address" || &s == "anyAddress" || &s == "any" {
         Ok(())
     } else {
         Err(serde::de::Error::custom("invalid `to` field"))

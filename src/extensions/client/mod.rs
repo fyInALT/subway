@@ -18,6 +18,7 @@ use jsonrpsee::{
     ws_client::{WsClient, WsClientBuilder},
 };
 use opentelemetry::{trace::FutureExt, KeyValue};
+use opentelemetry_semantic_conventions::resource::RPC_METHOD;
 use rand::{seq::SliceRandom, thread_rng};
 use serde::Deserialize;
 use tokio::sync::Notify;
@@ -450,7 +451,8 @@ impl Client {
         .with_context(TRACER.context_with_attrs(
             "client",
             [
-                KeyValue::new("params", request_params),
+                KeyValue::new(RPC_METHOD, method.to_string()),
+                KeyValue::new("rpc.params", request_params),
                 KeyValue::new("endpoint", self.endpoints[0].clone()),
             ],
         ))
@@ -480,7 +482,13 @@ impl Client {
 
             rx.await.map_err(errors::internal_error)?
         }
-        .with_context(TRACER.context_with_attrs("client", [KeyValue::new("params", subscribe_params)]))
+        .with_context(TRACER.context_with_attrs(
+            "client",
+            [
+                KeyValue::new(RPC_METHOD, subscribe.to_string()),
+                KeyValue::new("rpc.params", subscribe_params),
+            ],
+        ))
         .await
     }
 

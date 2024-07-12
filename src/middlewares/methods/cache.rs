@@ -7,6 +7,7 @@ use opentelemetry::{
     trace::{get_active_span, FutureExt, Span, TraceContextExt},
     Context, KeyValue,
 };
+use opentelemetry_semantic_conventions as semconv;
 
 use crate::extensions::prometheus::{get_rpc_metrics, RpcMetrics};
 use crate::{
@@ -77,6 +78,11 @@ impl Middleware<CallRequest, CallResult> for CacheMiddleware {
         next: NextFn<CallRequest, CallResult>,
     ) -> CallResult {
         let mut span = TRACER.span("cache");
+        let request_params = serde_json::to_string(&request.params).expect("serialize JSON value shouldn't be fail");
+        span.set_attributes([
+            KeyValue::new(semconv::resource::RPC_METHOD, request.method.clone()),
+            KeyValue::new("rpc.params", request_params),
+        ]);
 
         let bypass_cache = context.get::<BypassCache>().map(|v| v.0).unwrap_or(false);
         if bypass_cache {

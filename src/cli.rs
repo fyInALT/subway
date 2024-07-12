@@ -1,7 +1,10 @@
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
+
+use crate::build_info;
+
 #[derive(Parser, Debug)]
-#[command(version, about)]
+#[command(version = build_info::GIT_VERSION, about)]
 pub struct Cli {
     /// The config file to use
     #[arg(short, long, default_value = "configs/config.yml")]

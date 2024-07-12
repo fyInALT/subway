@@ -212,7 +212,7 @@ pub async fn validate(config: &Config) -> Result<(), anyhow::Error> {
     tracing::debug!("Validating config");
 
     // validate use garde::Validate
-    config.validate(&())?;
+    config.validate()?;
 
     if let Some(rate_limit) = config.extensions.rate_limit.as_ref() {
         if let Some(ref rule) = rate_limit.ip {

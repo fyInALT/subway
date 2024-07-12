@@ -9,6 +9,7 @@ use jsonrpsee::server::{
 };
 use jsonrpsee::Methods;
 use opentelemetry::{trace::FutureExt as _, KeyValue};
+use opentelemetry_semantic_conventions::resource as semcov;
 use serde::Deserialize;
 use tokio::net::TcpListener;
 use tower::{layer::layer_fn, Service};
@@ -213,7 +214,19 @@ impl SubwayServerBuilder {
 
                     let mut socket_ip = remote_addr.ip().to_string();
                     let xff_ip = req.xxf_ip().unwrap_or(socket_ip.clone());
+                    let domain = req.uri().host().unwrap_or("unknown").to_string();
+                    let scheme = req
+                        .uri()
+                        .scheme_str()
+                        .map(|s| s.to_string())
+                        .unwrap_or(protocol.to_string());
                     let path = req.uri().path().to_string();
+                    let user_agent = req
+                        .headers()
+                        .get("user-agent")
+                        .map(|v| v.to_str().unwrap_or("unknown"))
+                        .unwrap_or("unknown")
+                        .to_string();
 
                     if let Some(true) = rate_limit_builder.as_ref().map(|r| r.use_xff()) {
                         socket_ip = req.xxf_ip().unwrap_or(socket_ip);
@@ -253,9 +266,16 @@ impl SubwayServerBuilder {
 
                         service.call(req).await.map_err(|e| anyhow::anyhow!("{:?}", e))
                     }
-                    .with_context(
-                        TRACER.context_with_attrs("remote", [KeyValue::new("ip", xff_ip), KeyValue::new("path", path)]),
-                    )
+                    .with_context(TRACER.context_with_attrs(
+                        "server",
+                        [
+                            KeyValue::new(semcov::CLIENT_ADDRESS, xff_ip),
+                            KeyValue::new(semcov::URL_DOMAIN, domain),
+                            KeyValue::new(semcov::URL_SCHEME, scheme),
+                            KeyValue::new(semcov::URL_PATH, path),
+                            KeyValue::new(semcov::HTTP_USER_AGENT, user_agent),
+                        ],
+                    ))
                     .boxed()
                 });
 
