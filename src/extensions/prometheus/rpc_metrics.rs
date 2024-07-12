@@ -64,16 +64,33 @@ pub struct InnerMetrics {
 
 impl InnerMetrics {
     fn new(registry: &Registry) -> Self {
-        let open_counter = Counter::new("open_ws_counter", "No help").unwrap();
-        let closed_counter = Counter::new("closed_ws_counter", "No help").unwrap();
-        let cache_miss_counter = CounterVec::new(Opts::new("cache_miss_counter", "No help"), &["method"]).unwrap();
-        let cache_query_counter = CounterVec::new(Opts::new("cache_query_counter", "No help"), &["method"]).unwrap();
-        let call_times =
-            HistogramVec::new(HistogramOpts::new("rpc_calls_time", "No help"), &["protocol", "method"]).unwrap();
-        let calls_started_counter =
-            CounterVec::new(Opts::new("rpc_calls_started", "No help"), &["protocol", "method"]).unwrap();
+        let open_counter = Counter::new("open_ws_counter", "Total number of opened websocket connections").unwrap();
+        let closed_counter = Counter::new("closed_ws_counter", "Total number of closed websocket connections").unwrap();
+        let cache_miss_counter = CounterVec::new(
+            Opts::new("cache_miss_counter", "Total number of cache misses of RPC requests"),
+            &["method"],
+        )
+        .unwrap();
+        let cache_query_counter = CounterVec::new(
+            Opts::new("cache_query_counter", "Total number of cache queries of RPC requests"),
+            &["method"],
+        )
+        .unwrap();
+        let call_times = HistogramVec::new(
+            HistogramOpts::new(
+                "rpc_calls_time",
+                "Time interval from the initiation to the completion of an RPC request",
+            ),
+            &["protocol", "method"],
+        )
+        .unwrap();
+        let calls_started_counter = CounterVec::new(
+            Opts::new("rpc_calls_started", "Total number of initiated RPC requests"),
+            &["protocol", "method"],
+        )
+        .unwrap();
         let calls_finished_counter = CounterVec::new(
-            Opts::new("rpc_calls_finished", "No help"),
+            Opts::new("rpc_calls_finished", "Total number of completed RPC requests"),
             &["protocol", "method", "is_error"],
         )
         .unwrap();

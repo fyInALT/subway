@@ -8,12 +8,12 @@ extensions:
     stale_timeout_seconds: 180 # rotate endpoint if no new blocks for 3 minutes
     finalized_interval_seconds: 10 # get finalized head every 10 seconds
   telemetry:
-    provider: otlp
+    #provider: otlp
     #agent_endpoint: http://127.0.0.1:4317
   prometheus:
     port: 9616
     listen_address: "0.0.0.0"
-    prefix: "subway"
+    #prefix: "subway"
   cache:
     default_ttl_seconds: 60
     default_size: 500

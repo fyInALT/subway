@@ -39,8 +39,13 @@ impl Drop for Prometheus {
 pub struct PrometheusConfig {
     pub port: u16,
     pub listen_address: String,
-    pub prefix: Option<String>,
+    #[serde(default = "default_prefix")]
+    pub prefix: String,
     pub chain_label: Option<String>,
+}
+
+fn default_prefix() -> String {
+    "subway".to_string()
 }
 
 #[async_trait]
@@ -59,13 +64,7 @@ impl Prometheus {
             .clone()
             .map(|l| iter::once(("chain".to_string(), l.clone())).collect());
 
-        // make sure the prefix is not an Option of Some empty string
-        let prefix = match config.prefix {
-            Some(p) if p.is_empty() => Some("subway".to_string()),
-            p => p,
-        };
-        let registry = Registry::new_custom(prefix, labels)
-            .expect("It can't fail, we make sure the `prefix` is either `None` or `Some` of non-empty string");
+        let registry = Registry::new_custom(Some(config.prefix), labels).expect("prefix can not be empty string");
 
         // add subway info metric
         let info_gauge = Gauge::<U64>::with_opts(
