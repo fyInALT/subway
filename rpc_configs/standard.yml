@@ -14,18 +14,22 @@ methods:
   - method: eth_gasPrice
     cache:
       size: 1
+      ttl_seconds: 12
   - method: eth_blobBaseFee
     cache:
       size: 1
+      ttl_seconds: 12
   - method: eth_maxPriorityFeePerGas
     cache:
       size: 1
+      ttl_seconds: 12
   - method: eth_feeHistory
     params:
       - name: blockCount
         ty: Bytes
       - name: newestBlock
-        ty: Boolean
+        ty: BlockTag
+        inject: true
       - name: rewardPercentiles
         ty: Bytes
   # Eth namespace (sign)
