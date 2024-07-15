@@ -86,7 +86,7 @@ impl BlacklistChecker {
 }
 
 impl ItemChecker for BlacklistChecker {
-    type Item = (Address, ToAddress);
+    type Item = (Option<Address>, ToAddress);
 
     fn span_name() -> &'static str {
         "blacklist"
@@ -96,7 +96,7 @@ impl ItemChecker for BlacklistChecker {
         let (from, to) = item;
         for address in &self.addresses {
             // if satisfy address from/to
-            if address.satisfy(from, to) {
+            if address.satisfy(from.as_ref(), to) {
                 return false;
             }
         }
@@ -117,7 +117,6 @@ pub struct WhitelistChecker {
 impl WhitelistChecker {
     pub fn new(addresses: Vec<AddressRule>) -> Self {
         Self {
-            // TODO: maybe still need to enable it when empty.
             enabled: !addresses.is_empty(),
             addresses,
         }
@@ -125,7 +124,7 @@ impl WhitelistChecker {
 }
 
 impl ItemChecker for WhitelistChecker {
-    type Item = (Address, ToAddress);
+    type Item = (Option<Address>, ToAddress);
 
     fn span_name() -> &'static str {
         "whitelist"
@@ -135,7 +134,7 @@ impl ItemChecker for WhitelistChecker {
         let (from, to) = item;
         for address in &self.addresses {
             // if satisfy address from/to
-            if address.satisfy(from, to) {
+            if address.satisfy(from.as_ref(), to) {
                 return true;
             }
         }
@@ -221,14 +220,19 @@ impl MiddlewareBuilder<RpcMethod, CallRequest, CallResult> for ListMiddleware<Wh
 }
 
 /// Extract the address from `eth_call`/`eth_sendTranslation` parameters and convert it into lowercase.
-pub fn extract_address_from_to(params: &[JsonValue]) -> Result<(Address, ToAddress), ErrorObjectOwned> {
+pub fn extract_address_from_to(params: &[JsonValue]) -> Result<(Option<Address>, ToAddress), ErrorObjectOwned> {
     let p1 = params.first().ok_or_else(err_illegal_rpc_parameter)?;
 
-    // `from` must exist.
-    let from = p1.get("from").ok_or_else(err_unknown_from_address)?;
-    let from: Address = serde_json::from_value(from.clone()).map_err(|_err| {
-        ErrorObjectOwned::borrowed(UNKNOWN_ADDRESS, "Could not parse `from` from rpc parameter", None)
-    })?;
+    // For eth_call, it's optional.
+    let from = p1.get("from");
+
+    let from = if let Some(from) = from {
+        serde_json::from_value(from.clone()).map_err(|_err| {
+            ErrorObjectOwned::borrowed(UNKNOWN_ADDRESS, "Could not parse `from` from rpc parameter", None)
+        })?
+    } else {
+        None
+    };
 
     // When not get, it means `Create`.
     let to = p1.get("to");
@@ -244,7 +248,7 @@ pub fn extract_address_from_to(params: &[JsonValue]) -> Result<(Address, ToAddre
 }
 
 #[async_trait]
-impl<T: ItemChecker<Item = (Address, ToAddress)>> Middleware<CallRequest, CallResult> for ListMiddleware<T> {
+impl<T: ItemChecker<Item = (Option<Address>, ToAddress)>> Middleware<CallRequest, CallResult> for ListMiddleware<T> {
     async fn call(
         &self,
         request: CallRequest,
@@ -259,6 +263,11 @@ impl<T: ItemChecker<Item = (Address, ToAddress)>> Middleware<CallRequest, CallRe
             match self.rpc_type {
                 RpcType::EthCall | RpcType::SendTX => {
                     let (from, to) = extract_address_from_to(&request.params)?;
+                    // tx must have `from`.
+                    if self.rpc_type == RpcType::SendTX {
+                        from.ok_or_else(err_unknown_from_address)?;
+                    }
+
                     if !self.checker.check(&(from, to)) {
                         return Err(err_banned_address());
                     }
@@ -274,7 +283,7 @@ impl<T: ItemChecker<Item = (Address, ToAddress)>> Middleware<CallRequest, CallRe
 
                     let from = extract_signer_from_tx_envelop(&tx)?;
                     let to = extract_to_address_from_tx_envelop(&tx);
-                    if !self.checker.check(&(from, to)) {
+                    if !self.checker.check(&(Some(from), to)) {
                         return Err(err_banned_address());
                     }
                 }
@@ -630,9 +639,11 @@ params:
     eth_call:
       - from: 0000000000000000000000000000000000000001
       - from: 0000000000000000000000000000000000000002
-        to: 0000000000000000000000000000000000000003
+        to:   0000000000000000000000000000000000000003
       - from: 0000000000000000000000000000000000000003
         to: Create
+      - from: anyAddress
+        to:   0000000000000000000000000000000000000004
 ";
         let blacklist = Config::Blacklist(serde_yaml::from_reader(&mut config.as_bytes()).unwrap());
         let whitelist = Config::Whitelist(serde_yaml::from_reader(&mut config.as_bytes()).unwrap());
@@ -688,9 +699,14 @@ params:
                 config: whitelist.clone(),
             },
             Case {
-                // missing "from" param.
-                request: request::eth_call_with_to(TxKind::Call(address!("0000000000000000000000000000000000000001"))),
-                expected_res: Err(err_unknown_from_address()),
+                // optional `from`
+                request: request::eth_call_with_to(TxKind::Call(address!("0000000000000000000000000000000000000004"))),
+                expected_res: ok_res.clone(),
+                config: whitelist.clone(),
+            },
+            Case {
+                request: request::eth_call_with_to(TxKind::Call(address!("0000000000000000000000000000000000000005"))),
+                expected_res: Err(err_banned_address()),
                 config: whitelist.clone(),
             },
         ];

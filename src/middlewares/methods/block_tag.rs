@@ -84,15 +84,12 @@ impl BlockTagMiddleware {
                                 if let Ok(number) = u64::from_str_radix(hex_number, 16) {
                                     if number <= finalized_number {
                                         bypass_cache = false;
-                                    } else {
-                                        self.metrics.finalized_miss(&request.method);
                                     }
                                 }
                             }
-                        } else {
-                            self.metrics.finalized_miss(&request.method);
                         }
                         if bypass_cache {
+                            self.metrics.finalized_miss(&request.method);
                             context.insert(BypassCache(true));
                         }
                         None

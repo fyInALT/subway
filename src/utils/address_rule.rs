@@ -44,11 +44,12 @@ pub enum FromAddressRule {
 }
 
 impl FromAddressRule {
-    pub fn satisfy(&self, addr: &Address) -> bool {
-        match self {
-            Self::AnyAddress => true,
-            Self::Address(address) => address == addr,
-            Self::AddressGlob(pattern) => pattern.matches_with(addr.to_string().as_str(), OPT),
+    pub fn satisfy(&self, addr: Option<&Address>) -> bool {
+        match (self, addr) {
+            (Self::AnyAddress, _) => true,
+            (Self::Address(address), Some(addr)) => address == addr,
+            (Self::AddressGlob(pattern), Some(addr)) => pattern.matches_with(addr.to_string().as_str(), OPT),
+            _ => false,
         }
     }
 }
@@ -67,14 +68,13 @@ impl ToAddressRule {
 
 impl AddressRule {
     /// Check if the address satisfied.
-    pub fn satisfy(&self, from: &Address, to: &ToAddress) -> bool {
+    pub fn satisfy(&self, from: Option<&Address>, to: &ToAddress) -> bool {
         let b = self.satisfy_from_address(from);
         let b2 = self.satisfy_to_address(to);
-
         b && b2
     }
 
-    pub fn satisfy_from_address(&self, from: &Address) -> bool {
+    pub fn satisfy_from_address(&self, from: Option<&Address>) -> bool {
         if let Some(rule) = &self.from {
             rule.satisfy(from)
         } else {
