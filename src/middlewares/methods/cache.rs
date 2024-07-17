@@ -99,13 +99,13 @@ impl Middleware<CallRequest, CallResult> for CacheMiddleware {
             let key = CacheKey::<Blake2b512>::new(&request.method, &request.params);
 
             let metrics = self.metrics.clone();
-            metrics.cache_query(&request.method);
+            metrics.finalized_cache_query(&request.method);
 
             let result = self
                 .cache
                 .get_or_insert_with(key.clone(), || {
                     hit = false;
-                    metrics.cache_miss(&request.method);
+                    metrics.finalized_cache_miss(&request.method);
                     next(request, context).boxed()
                 })
                 .await;
@@ -375,10 +375,8 @@ mod tests {
                     size: Some(0),
                     ttl_seconds: None,
                 }),
-                params: vec![],
-                response: None,
-                delay_ms: None,
                 rate_limit_weight: 1,
+                ..Default::default()
             },
             &ext,
         )
@@ -393,10 +391,8 @@ mod tests {
                     size: None,
                     ttl_seconds: None,
                 }),
-                params: vec![],
-                response: None,
-                delay_ms: None,
                 rate_limit_weight: 1,
+                ..Default::default()
             },
             &ext,
         )
@@ -411,10 +407,8 @@ mod tests {
                     size: Some(1),
                     ttl_seconds: None,
                 }),
-                params: vec![],
-                response: None,
-                delay_ms: None,
                 rate_limit_weight: 1,
+                ..Default::default()
             },
             &ext,
         )
@@ -426,10 +420,8 @@ mod tests {
             &RpcMethod {
                 method: "foo".to_string(),
                 cache: None,
-                params: vec![],
-                response: None,
-                delay_ms: None,
                 rate_limit_weight: 1,
+                ..Default::default()
             },
             &ext,
         )

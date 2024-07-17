@@ -29,6 +29,7 @@ pub async fn create_method_middleware(
 
         "response" => response::ResponseMiddleware::build(method, extensions).await,
         "upstream" => upstream::UpstreamMiddleware::build(method, extensions).await,
+        "block_cache" => block_cache::BlockCacheMiddleware::build(method, extensions).await,
         "cache" => cache::CacheMiddleware::build(method, extensions).await,
         "block_tag" => block_tag::BlockTagMiddleware::build(method, extensions).await,
         "inject_params" => inject_params::InjectParamsMiddleware::build(method, extensions).await,

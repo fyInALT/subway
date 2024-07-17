@@ -240,51 +240,33 @@ fn config() -> Config {
             methods: vec![
                 RpcMethod {
                     method: helpers::SYNC_FAST_CALL.to_string(),
-                    params: vec![],
-                    response: None,
-                    cache: None,
-                    delay_ms: None,
                     rate_limit_weight: 1,
+                    ..Default::default()
                 },
                 RpcMethod {
                     method: helpers::ASYNC_FAST_CALL.to_string(),
-                    params: vec![],
-                    response: None,
-                    cache: None,
-                    delay_ms: None,
                     rate_limit_weight: 1,
+                    ..Default::default()
                 },
                 RpcMethod {
                     method: helpers::SYNC_MEM_CALL.to_string(),
-                    params: vec![],
-                    response: None,
-                    cache: None,
-                    delay_ms: None,
                     rate_limit_weight: 1,
+                    ..Default::default()
                 },
                 RpcMethod {
                     method: helpers::ASYNC_MEM_CALL.to_string(),
-                    params: vec![],
-                    response: None,
-                    cache: None,
-                    delay_ms: None,
                     rate_limit_weight: 1,
+                    ..Default::default()
                 },
                 RpcMethod {
                     method: helpers::SYNC_SLOW_CALL.to_string(),
-                    params: vec![],
-                    response: None,
-                    cache: None,
-                    delay_ms: None,
                     rate_limit_weight: 1,
+                    ..Default::default()
                 },
                 RpcMethod {
                     method: helpers::ASYNC_SLOW_CALL.to_string(),
-                    params: vec![],
-                    response: None,
-                    cache: None,
-                    delay_ms: None,
                     rate_limit_weight: 1,
+                    ..Default::default()
                 },
                 RpcMethod {
                     method: helpers::ASYNC_INJECT_CALL.to_string(),
@@ -302,10 +284,8 @@ fn config() -> Config {
                             inject: true,
                         },
                     ],
-                    response: None,
-                    cache: None,
-                    delay_ms: None,
                     rate_limit_weight: 1,
+                    ..Default::default()
                 },
             ],
             subscriptions: vec![RpcSubscription {

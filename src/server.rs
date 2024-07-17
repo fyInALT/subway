@@ -274,27 +274,18 @@ mod tests {
                 methods: vec![
                     RpcMethod {
                         method: PHO.to_string(),
-                        params: vec![],
-                        cache: None,
-                        response: None,
-                        delay_ms: None,
                         rate_limit_weight: 1,
+                        ..Default::default()
                     },
                     RpcMethod {
                         method: TIMEOUT.to_string(),
-                        params: vec![],
-                        cache: None,
-                        response: None,
-                        delay_ms: None,
                         rate_limit_weight: 1,
+                        ..Default::default()
                     },
                     RpcMethod {
                         method: CRAZY.to_string(),
-                        params: vec![],
-                        cache: None,
-                        response: None,
-                        delay_ms: None,
                         rate_limit_weight: 1,
+                        ..Default::default()
                     },
                 ],
                 subscriptions: vec![],

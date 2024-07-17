@@ -27,25 +27,25 @@ impl RpcMetrics {
         }
     }
 
-    pub fn cache_query(&self, method: &str) {
+    pub fn finalized_cache_query(&self, method: &str) {
         if let Self::Prometheus(inner) = self {
-            inner.cache_query(method);
+            inner.finalized_cache_query(method);
         }
     }
-    pub fn cache_miss(&self, method: &str) {
+    pub fn finalized_cache_miss(&self, method: &str) {
         if let Self::Prometheus(inner) = self {
-            inner.cache_miss(method);
+            inner.finalized_cache_miss(method);
         }
     }
 
-    pub fn finalized_query(&self, method: &str) {
+    pub fn recent_cache_query(&self, method: &str) {
         if let Self::Prometheus(inner) = self {
-            inner.finalized_query(method);
+            inner.recent_cache_query(method);
         }
     }
-    pub fn finalized_miss(&self, method: &str) {
+    pub fn recent_cache_miss(&self, method: &str) {
         if let Self::Prometheus(inner) = self {
-            inner.finalized_miss(method);
+            inner.recent_cache_miss(method);
         }
     }
 
@@ -66,10 +66,10 @@ impl RpcMetrics {
 pub struct InnerMetrics {
     open_session_count: Counter<U64>,
     closed_session_count: Counter<U64>,
-    cache_query_counter: CounterVec<U64>,
-    cache_miss_counter: CounterVec<U64>,
-    finalized_query_counter: CounterVec<U64>,
-    finalized_miss_counter: CounterVec<U64>,
+    finalized_cache_query_counter: CounterVec<U64>,
+    finalized_cache_miss_counter: CounterVec<U64>,
+    recent_cache_query_counter: CounterVec<U64>,
+    recent_cache_miss_counter: CounterVec<U64>,
     call_times: HistogramVec,
     calls_started: CounterVec<U64>,
     calls_finished: CounterVec<U64>,
@@ -79,32 +79,40 @@ impl InnerMetrics {
     fn new(registry: &Registry) -> Self {
         let open_counter = Counter::new("open_ws_counter", "Total number of opened websocket connections").unwrap();
         let closed_counter = Counter::new("closed_ws_counter", "Total number of closed websocket connections").unwrap();
-        let cache_miss_counter = CounterVec::new(
-            Opts::new("cache_miss_counter", "Total number of cache misses of RPC requests"),
-            &["method"],
-        )
-        .unwrap();
-        let cache_query_counter = CounterVec::new(
-            Opts::new("cache_query_counter", "Total number of cache queries of RPC requests"),
-            &["method"],
-        )
-        .unwrap();
-        let finalized_miss_counter = CounterVec::new(
+
+        let finalized_cache_query_counter = CounterVec::new(
             Opts::new(
-                "finalized_miss_counter",
-                "Total number of finalized block misses of RPC requests with block tag",
+                "finalized_cache_query_counter",
+                "Total number of cache queries of RPC requests about finalized blocks",
             ),
             &["method"],
         )
         .unwrap();
-        let finalized_query_counter = CounterVec::new(
+        let finalized_cache_miss_counter = CounterVec::new(
             Opts::new(
-                "finalized_query_counter",
-                "Total number of finalized block queries of RPC requests with block tag",
+                "finalized_cache_miss_counter",
+                "Total number of cache misses of RPC requests about finalized blocks",
             ),
             &["method"],
         )
         .unwrap();
+        let recent_cache_query_counter = CounterVec::new(
+            Opts::new(
+                "recent_cache_query_counter",
+                "Total number of cache queries of RPC requests about recent blocks",
+            ),
+            &["method"],
+        )
+        .unwrap();
+        let recent_cache_miss_counter = CounterVec::new(
+            Opts::new(
+                "recent_cache_miss_counter",
+                "Total number of cache misses of RPC requests about recent blocks",
+            ),
+            &["method"],
+        )
+        .unwrap();
+
         let call_times = HistogramVec::new(
             HistogramOpts::new(
                 "rpc_calls_time",
@@ -126,22 +134,25 @@ impl InnerMetrics {
 
         let open_session_count = register(open_counter, registry).unwrap();
         let closed_session_count = register(closed_counter, registry).unwrap();
-        let cache_query_counter = register(cache_query_counter, registry).unwrap();
-        let cache_miss_counter = register(cache_miss_counter, registry).unwrap();
-        let finalized_query_counter = register(finalized_query_counter, registry).unwrap();
-        let finalized_miss_counter = register(finalized_miss_counter, registry).unwrap();
+
+        let finalized_cache_query_counter = register(finalized_cache_query_counter, registry).unwrap();
+        let finalized_cache_miss_counter = register(finalized_cache_miss_counter, registry).unwrap();
+        let recent_cache_query_counter = register(recent_cache_query_counter, registry).unwrap();
+        let recent_cache_miss_counter = register(recent_cache_miss_counter, registry).unwrap();
 
         let call_times = register(call_times, registry).unwrap();
         let calls_started = register(calls_started_counter, registry).unwrap();
         let calls_finished = register(calls_finished_counter, registry).unwrap();
 
         Self {
-            cache_miss_counter,
-            cache_query_counter,
-            finalized_miss_counter,
-            finalized_query_counter,
             open_session_count,
             closed_session_count,
+
+            finalized_cache_query_counter,
+            finalized_cache_miss_counter,
+            recent_cache_query_counter,
+            recent_cache_miss_counter,
+
             calls_started,
             calls_finished,
             call_times,
@@ -155,19 +166,19 @@ impl InnerMetrics {
         self.closed_session_count.inc();
     }
 
-    fn cache_query(&self, method: &str) {
-        self.cache_query_counter.with_label_values(&[method]).inc();
+    fn finalized_cache_query(&self, method: &str) {
+        self.finalized_cache_query_counter.with_label_values(&[method]).inc();
     }
 
-    fn cache_miss(&self, method: &str) {
-        self.cache_miss_counter.with_label_values(&[method]).inc();
+    fn finalized_cache_miss(&self, method: &str) {
+        self.finalized_cache_miss_counter.with_label_values(&[method]).inc();
     }
 
-    fn finalized_query(&self, method: &str) {
-        self.finalized_query_counter.with_label_values(&[method]).inc();
+    fn recent_cache_query(&self, method: &str) {
+        self.recent_cache_query_counter.with_label_values(&[method]).inc();
     }
 
-    fn finalized_miss(&self, method: &str) {
-        self.finalized_miss_counter.with_label_values(&[method]).inc();
+    fn recent_cache_miss(&self, method: &str) {
+        self.recent_cache_miss_counter.with_label_values(&[method]).inc();
     }
 }

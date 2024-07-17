@@ -17,7 +17,7 @@ impl<D: Digest> Clone for CacheKey<D> {
 }
 
 impl<D: Digest> CacheKey<D> {
-    pub fn new(method: &String, params: &[JsonValue]) -> Self {
+    pub fn new(method: &str, params: &[JsonValue]) -> Self {
         let mut hasher = D::new();
         hasher.update(method.as_bytes());
         for p in params {
@@ -164,7 +164,7 @@ mod tests {
     async fn get_insert_remove() {
         let cache = Cache::<blake2::Blake2b512>::new(NonZeroUsize::new(1).unwrap(), None);
 
-        let key = CacheKey::<blake2::Blake2b512>::new(&"key".to_string(), &[]);
+        let key = CacheKey::<blake2::Blake2b512>::new("key", &[]);
 
         assert_eq!(cache.get(&key).await, None);
 
@@ -181,7 +181,7 @@ mod tests {
     async fn get_or_insert_with_basic() {
         let cache = Cache::<blake2::Blake2b512>::new(NonZeroUsize::new(1).unwrap(), None);
 
-        let key = CacheKey::<blake2::Blake2b512>::new(&"key".to_string(), &[]);
+        let key = CacheKey::<blake2::Blake2b512>::new("key", &[]);
 
         let (tx, rx) = tokio::sync::oneshot::channel::<()>();
 
@@ -230,7 +230,7 @@ mod tests {
     async fn get_or_insert_with_handle_canceled_request() {
         let cache = Cache::<blake2::Blake2b512>::new(NonZeroUsize::new(1).unwrap(), None);
 
-        let key = CacheKey::<blake2::Blake2b512>::new(&"key".to_string(), &[]);
+        let key = CacheKey::<blake2::Blake2b512>::new("key", &[]);
 
         let (_tx, rx) = tokio::sync::oneshot::channel::<()>();
 
@@ -274,7 +274,7 @@ mod tests {
     async fn get_or_insert_with_error() {
         let cache = Cache::<blake2::Blake2b512>::new(NonZeroUsize::new(1).unwrap(), None);
 
-        let key = CacheKey::<blake2::Blake2b512>::new(&"key".to_string(), &[]);
+        let key = CacheKey::<blake2::Blake2b512>::new("key", &[]);
 
         let value = cache
             .get_or_insert_with(key.clone(), || async move { Err(reject_too_big_request(100)) }.boxed())

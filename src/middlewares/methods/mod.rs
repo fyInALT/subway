@@ -1,3 +1,4 @@
+pub mod block_cache;
 pub mod block_tag;
 pub mod cache;
 pub mod delay;

@@ -4,6 +4,49 @@ use serde::Deserialize;
 
 #[derive(Clone, Deserialize, Debug, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
+pub struct BlockCacheParams {
+    #[serde(default, alias = "size")]
+    pub finalized_size: Option<usize>,
+    #[serde(default, alias = "ttl_seconds")]
+    pub finalized_ttl_seconds: Option<u64>,
+    #[serde(default, alias = "ttl_units")]
+    pub finalized_ttl_units: Option<u64>,
+    #[serde(default)]
+    pub recent_size: Option<usize>,
+    #[serde(default)]
+    pub recent_ttl_seconds: Option<u64>,
+    #[serde(default)]
+    pub recent_ttl_units: Option<u64>,
+}
+
+impl BlockCacheParams {
+    pub fn finalized_ttl_seconds(&self, ttl_unit_seconds: u64, default_ttl_units: Option<u64>) -> Option<u64> {
+        // ttl zero means cache forever
+        if self.finalized_ttl_seconds == Some(0) || self.finalized_ttl_units == Some(0) {
+            return None;
+        }
+
+        self.finalized_ttl_seconds.or(self
+            .finalized_ttl_units
+            .or(default_ttl_units)
+            .map(|units| units * ttl_unit_seconds))
+    }
+
+    pub fn recent_ttl_seconds(&self, ttl_unit_seconds: u64, default_ttl_units: Option<u64>) -> Option<u64> {
+        // ttl zero means cache forever
+        if self.recent_ttl_seconds == Some(0) || self.recent_ttl_units == Some(0) {
+            return None;
+        }
+
+        self.recent_ttl_seconds.or(self
+            .recent_ttl_units
+            .or(default_ttl_units)
+            .map(|units| units * ttl_unit_seconds))
+    }
+}
+
+#[derive(Clone, Deserialize, Debug, Eq, PartialEq)]
+#[serde(deny_unknown_fields)]
 pub struct CacheParams {
     #[serde(default)]
     pub size: Option<usize>,
@@ -23,7 +66,7 @@ pub struct MethodParam {
     pub inject: bool,
 }
 
-#[derive(Deserialize, Validate, Debug, Clone)]
+#[derive(Deserialize, Validate, Debug, Clone, Default)]
 #[garde(allow_unvalidated)]
 #[serde(deny_unknown_fields)]
 pub struct RpcMethod {
@@ -31,6 +74,9 @@ pub struct RpcMethod {
 
     #[serde(default)]
     pub cache: Option<CacheParams>,
+
+    #[serde(default)]
+    pub block_cache: Option<BlockCacheParams>,
 
     #[garde(custom(validate_params_with_name(&self.method)))]
     #[serde(default)]

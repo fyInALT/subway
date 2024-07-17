@@ -1,7 +1,7 @@
 extensions:
   client:
     endpoints:
-      # run anvil -b 5 --slots-in-an-epoch 1 --port 8547
+      # run anvil -b 12 --slots-in-an-epoch 1 --port 8547
       - ws://127.0.0.1:8547
       # - wss://op-demo.alt.technology/ws
   eth_api:
@@ -14,9 +14,12 @@ extensions:
     port: 9616
     listen_address: "0.0.0.0"
     #prefix: "subway"
-  cache:
-    default_ttl_seconds: 60
-    default_size: 500
+  block_cache:
+    ttl_unit_seconds: 12
+    default_finalized_ttl_units: 150
+    default_finalized_size: 4096
+    default_recent_ttl_units: 5
+    default_recent_size: 4096
   server:
     port: 8545
     listen_address: "0.0.0.0"
@@ -59,8 +62,7 @@ middlewares:
     - whitelist
     - blacklist
     - response
-    - block_tag
-    - cache
+    - block_cache
     - upstream
   subscriptions:
     - upstream

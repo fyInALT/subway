@@ -2,35 +2,36 @@
 methods:
   # Eth namespace (client)
   - method: eth_chainId
-    cache:
+    block_cache:
       size: 1
+      ttl_units: 0 # cache forever
   - method: eth_syncing
   - method: eth_coinbase
   - method: eth_accounts
   - method: eth_blockNumber
-    cache:
-      ttl_seconds: 1
+    block_cache:
+      ttl_units: 1
   # Eth namespace (fee market)
   - method: eth_gasPrice
-    cache:
+    block_cache:
       size: 1
-      ttl_seconds: 12
+      ttl_units: 1
   - method: eth_blobBaseFee
-    cache:
+    block_cache:
       size: 1
-      ttl_seconds: 12
+      ttl_units: 1
   - method: eth_maxPriorityFeePerGas
-    cache:
+    block_cache:
       size: 1
-      ttl_seconds: 12
+      ttl_units: 1
   - method: eth_feeHistory
     params:
-      - name: blockCount
+      - name: BlockCount
         ty: Bytes
-      - name: newestBlock
+      - name: NewestBlock
         ty: BlockTag
         inject: true
-      - name: rewardPercentiles
+      - name: RewardPercentiles
         ty: Bytes
   # Eth namespace (sign)
   - method: eth_sign
@@ -45,21 +46,21 @@ methods:
         ty: Bytes
   # Eth namespace (submit)
   - method: eth_sendTransaction
-    cache:
+    block_cache:
       size: 0
     params:
       - name: Transaction
         ty: Bytes
   - method: eth_sendRawTransaction
-    cache:
+    block_cache:
       size: 0
     params:
       - name: Transaction
         ty: Bytes
   # Eth namespace (execute)
   - method: eth_call
-    cache:
-      ttl_seconds: 3
+    block_cache:
+      ttl_units: 1
     params:
       - name: Transaction
         ty: Bytes
@@ -67,8 +68,8 @@ methods:
         ty: BlockTag
         inject: true
   - method: eth_estimateGas
-    cache:
-      ttl_seconds: 3
+    block_cache:
+      ttl_units: 1
     params:
       - name: Transaction
         ty: Bytes
@@ -76,8 +77,8 @@ methods:
         ty: BlockTag
         inject: true
   - method: eth_createAccessList
-    cache:
-      ttl_seconds: 3
+    block_cache:
+      ttl_units: 1
     params:
       - name: Transaction
         ty: Bytes
@@ -96,7 +97,7 @@ methods:
       - name: Block
         ty: BlockTag
         inject: true
-      - name: fullTransactions
+      - name: FullTransactions
         ty: Boolean
   - method: eth_getBlockTransactionCountByHash
     params:
@@ -123,37 +124,37 @@ methods:
         inject: true
   # Eth namespace (filter)
   - method: eth_newFilter
-    cache:
+    block_cache:
       size: 0
     params:
       - name: Filter
         ty: Bytes
   - method: eth_newBlockFilter
-    cache:
+    block_cache:
       size: 0
   - method: eth_newPendingTransactionFilter
-    cache:
+    block_cache:
       size: 0
   - method: eth_getFilterChanges
-    cache:
+    block_cache:
       size: 0
     params:
       - name: FilterIdentifier
         ty: Bytes
   - method: eth_getFilterLogs
-    cache:
+    block_cache:
       size: 0
     params:
       - name: FilterIdentifier
         ty: Bytes
   - method: eth_getLogs
-    cache:
+    block_cache:
       size: 0
     params:
       - name: Filter
         ty: Bytes
   - method: eth_uninstallFilter
-    cache:
+    block_cache:
       size: 0
     params:
       - name: FilterIdentifier
@@ -176,8 +177,8 @@ methods:
         ty: BlockTag
         inject: true
   - method: eth_getTransactionCount
-    cache:
-      ttl_seconds: 3
+    block_cache:
+      ttl_units: 1
     params:
       - name: Address
         ty: Bytes
@@ -225,9 +226,9 @@ methods:
 
   # Debug namespace (standard)
   - method: debug_getBadBlocks
-    cache:
-      ttl_seconds: 3
+    block_cache:
       size: 1
+      ttl_units: 1
   - method: debug_getRawBlock
     params:
       - name: Block
@@ -265,9 +266,9 @@ methods:
   - method: debug_setHead
   - method: debug_setTrieFlushInterval
   - method: debug_getTrieFlushInterval
-    cache:
-      ttl_seconds: 3
+    block_cache:
       size: 1
+      ttl_units: 1
   # Debug (trace) namespace (Geth-specified)
   - method: debug_intermediateRoots
   - method: debug_standardTraceBlockToFile
@@ -283,34 +284,34 @@ methods:
 
   # Txpool namespace (Geth-specified)
   - method: txpool_content
-    cache:
-      ttl_seconds: 3
+    block_cache:
       size: 1
+      ttl_seconds: 3
   - method: txpool_contentFrom
-    cache:
+    block_cache:
       ttl_seconds: 3
     params:
       - name: Address
         ty: Bytes
   - method: txpool_inspect
-    cache:
-      ttl_seconds: 3
+    block_cache:
       size: 1
+      ttl_seconds: 3
   - method: txpool_status
-    cache:
-      ttl_seconds: 3
+    block_cache:
       size: 1
+      ttl_seconds: 3
 
   # Net namespace (Geth-specified)
   - method: net_listening
   - method: net_peerCount
   - method: net_version
-    cache:
+    block_cache:
       size: 1
 
   # Web3 namespace (Geth-specified)
   - method: web3_clientVersion
-    cache:
+    block_cache:
       size: 1
   - method: web3_sha3
 
