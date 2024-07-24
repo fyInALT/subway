@@ -9,7 +9,7 @@ use jsonrpsee::server::{
 };
 use jsonrpsee::Methods;
 use opentelemetry::{trace::FutureExt as _, KeyValue};
-use opentelemetry_semantic_conventions::resource as semcov;
+use opentelemetry_semantic_conventions::resource as semconv;
 use serde::Deserialize;
 use tokio::net::TcpListener;
 use tower::{layer::layer_fn, Service};
@@ -269,11 +269,11 @@ impl SubwayServerBuilder {
                     .with_context(TRACER.context_with_attrs(
                         "server",
                         [
-                            KeyValue::new(semcov::CLIENT_ADDRESS, xff_ip),
-                            KeyValue::new(semcov::URL_DOMAIN, domain),
-                            KeyValue::new(semcov::URL_SCHEME, scheme),
-                            KeyValue::new(semcov::URL_PATH, path),
-                            KeyValue::new(semcov::HTTP_USER_AGENT, user_agent),
+                            KeyValue::new(semconv::CLIENT_ADDRESS, xff_ip),
+                            KeyValue::new(semconv::URL_DOMAIN, domain),
+                            KeyValue::new(semconv::URL_SCHEME, scheme),
+                            KeyValue::new(semconv::URL_PATH, path),
+                            KeyValue::new(semconv::HTTP_USER_AGENT, user_agent),
                         ],
                     ))
                     .boxed()

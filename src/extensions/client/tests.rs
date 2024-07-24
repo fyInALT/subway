@@ -85,6 +85,7 @@ async fn multiple_endpoints() {
     assert_eq!(result.to_string(), "1");
 
     handle1.stop().unwrap();
+    tracing::info!("Server `{addr1}` stopped");
 
     let result = client.request("mock_rpc", vec![22.into()]).await.unwrap();
 
@@ -99,12 +100,14 @@ async fn multiple_endpoints() {
     assert_eq!(result.to_string(), "3");
 
     handle3.stop().unwrap();
+    tracing::info!("Server `{addr3}` stopped");
 
     let result = client.request("mock_rpc", vec![44.into()]).await.unwrap();
 
     assert_eq!(result.to_string(), "2");
 
     handle2.stop().unwrap();
+    tracing::info!("Server `{addr2}` stopped");
 
     let (r1, r2, r3) = tokio::join!(handler1, handler2, handler3);
     r1.unwrap();
@@ -148,10 +151,12 @@ async fn retry_requests_successful() {
     let (addr2, handle2, mut rx2, _) = dummy_server().await;
 
     let client = Client::new(
+        WsConfig {
+            request_timeout: Duration::from_millis(100),
+            ..Default::default()
+        },
         [format!("ws://{addr1}"), format!("ws://{addr2}")],
-        Some(Duration::from_millis(100)),
-        None,
-        Some(2),
+        2,
     )
     .unwrap();
 
@@ -185,10 +190,12 @@ async fn retry_requests_out_of_retries() {
     let (addr2, handle2, mut rx2, _) = dummy_server().await;
 
     let client = Client::new(
+        WsConfig {
+            request_timeout: Duration::from_millis(100),
+            ..Default::default()
+        },
         [format!("ws://{addr1}"), format!("ws://{addr2}")],
-        Some(Duration::from_millis(100)),
-        None,
-        Some(2),
+        2,
     )
     .unwrap();
 

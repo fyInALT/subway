@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use opentelemetry::{trace::FutureExt, KeyValue};
-use opentelemetry_semantic_conventions as semconv;
+use opentelemetry_semantic_conventions::resource as semconv;
 
 use crate::{
     extensions::api::EthApi,
@@ -123,7 +123,7 @@ impl Middleware<CallRequest, CallResult> for BlockTagMiddleware {
         .with_context(TRACER.context_with_attrs(
             "block_tag",
             [
-                KeyValue::new(semconv::resource::RPC_METHOD, request_method),
+                KeyValue::new(semconv::RPC_METHOD, request_method),
                 KeyValue::new("rpc.params", request_params),
             ],
         ))

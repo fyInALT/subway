@@ -9,7 +9,7 @@ use opentelemetry::{
     trace::{FutureExt, Span, TraceContextExt},
     Context, KeyValue,
 };
-use opentelemetry_semantic_conventions as semconv;
+use opentelemetry_semantic_conventions::resource as semconv;
 
 use crate::{
     config::BlockCacheParams,
@@ -135,7 +135,7 @@ impl Middleware<CallRequest, CallResult> for BlockCacheMiddleware {
         let request_method = request.method.clone();
         let request_params = serde_json::to_string(&request.params).expect("serialize JSON value shouldn't be fail");
         span.set_attributes([
-            KeyValue::new(semconv::resource::RPC_METHOD, request_method),
+            KeyValue::new(semconv::RPC_METHOD, request_method),
             KeyValue::new("rpc.params", request_params),
         ]);
 
