@@ -32,9 +32,9 @@ impl RpcMetrics {
             inner.finalized_cache_query(method);
         }
     }
-    pub fn finalized_cache_miss(&self, method: &str) {
+    pub fn finalized_cache_hit(&self, method: &str) {
         if let Self::Prometheus(inner) = self {
-            inner.finalized_cache_miss(method);
+            inner.finalized_cache_hit(method);
         }
     }
 
@@ -43,9 +43,9 @@ impl RpcMetrics {
             inner.recent_cache_query(method);
         }
     }
-    pub fn recent_cache_miss(&self, method: &str) {
+    pub fn recent_cache_hit(&self, method: &str) {
         if let Self::Prometheus(inner) = self {
-            inner.recent_cache_miss(method);
+            inner.recent_cache_hit(method);
         }
     }
 
@@ -66,10 +66,8 @@ impl RpcMetrics {
 pub struct InnerMetrics {
     open_session_count: Counter<U64>,
     closed_session_count: Counter<U64>,
-    finalized_cache_query_counter: CounterVec<U64>,
-    finalized_cache_miss_counter: CounterVec<U64>,
-    recent_cache_query_counter: CounterVec<U64>,
-    recent_cache_miss_counter: CounterVec<U64>,
+    cache_query_counter: CounterVec<U64>,
+    cache_hit_counter: CounterVec<U64>,
     call_times: HistogramVec,
     calls_started: CounterVec<U64>,
     calls_finished: CounterVec<U64>,
@@ -80,36 +78,20 @@ impl InnerMetrics {
         let open_counter = Counter::new("open_ws_counter", "Total number of opened websocket connections").unwrap();
         let closed_counter = Counter::new("closed_ws_counter", "Total number of closed websocket connections").unwrap();
 
-        let finalized_cache_query_counter = CounterVec::new(
+        let cache_query_counter = CounterVec::new(
             Opts::new(
-                "finalized_cache_query_counter",
-                "Total number of cache queries of RPC requests about finalized blocks",
+                "cache_query_counter",
+                "Total number of cache queries of RPC requests about finalized or recent blocks",
             ),
-            &["method"],
+            &["block", "method"],
         )
         .unwrap();
-        let finalized_cache_miss_counter = CounterVec::new(
+        let cache_hit_counter = CounterVec::new(
             Opts::new(
-                "finalized_cache_miss_counter",
-                "Total number of cache misses of RPC requests about finalized blocks",
+                "cache_hit_counter",
+                "Total number of cache misses of RPC requests about finalized or recent blocks",
             ),
-            &["method"],
-        )
-        .unwrap();
-        let recent_cache_query_counter = CounterVec::new(
-            Opts::new(
-                "recent_cache_query_counter",
-                "Total number of cache queries of RPC requests about recent blocks",
-            ),
-            &["method"],
-        )
-        .unwrap();
-        let recent_cache_miss_counter = CounterVec::new(
-            Opts::new(
-                "recent_cache_miss_counter",
-                "Total number of cache misses of RPC requests about recent blocks",
-            ),
-            &["method"],
+            &["block", "method"],
         )
         .unwrap();
 
@@ -135,10 +117,8 @@ impl InnerMetrics {
         let open_session_count = register(open_counter, registry).unwrap();
         let closed_session_count = register(closed_counter, registry).unwrap();
 
-        let finalized_cache_query_counter = register(finalized_cache_query_counter, registry).unwrap();
-        let finalized_cache_miss_counter = register(finalized_cache_miss_counter, registry).unwrap();
-        let recent_cache_query_counter = register(recent_cache_query_counter, registry).unwrap();
-        let recent_cache_miss_counter = register(recent_cache_miss_counter, registry).unwrap();
+        let cache_query_counter = register(cache_query_counter, registry).unwrap();
+        let cache_hit_counter = register(cache_hit_counter, registry).unwrap();
 
         let call_times = register(call_times, registry).unwrap();
         let calls_started = register(calls_started_counter, registry).unwrap();
@@ -148,10 +128,8 @@ impl InnerMetrics {
             open_session_count,
             closed_session_count,
 
-            finalized_cache_query_counter,
-            finalized_cache_miss_counter,
-            recent_cache_query_counter,
-            recent_cache_miss_counter,
+            cache_query_counter,
+            cache_hit_counter,
 
             calls_started,
             calls_finished,
@@ -167,18 +145,18 @@ impl InnerMetrics {
     }
 
     fn finalized_cache_query(&self, method: &str) {
-        self.finalized_cache_query_counter.with_label_values(&[method]).inc();
+        self.cache_query_counter.with_label_values(&["finalized", method]).inc();
     }
 
-    fn finalized_cache_miss(&self, method: &str) {
-        self.finalized_cache_miss_counter.with_label_values(&[method]).inc();
+    fn finalized_cache_hit(&self, method: &str) {
+        self.cache_hit_counter.with_label_values(&["finalized", method]).inc();
     }
 
     fn recent_cache_query(&self, method: &str) {
-        self.recent_cache_query_counter.with_label_values(&[method]).inc();
+        self.cache_query_counter.with_label_values(&["recent", method]).inc();
     }
 
-    fn recent_cache_miss(&self, method: &str) {
-        self.recent_cache_miss_counter.with_label_values(&[method]).inc();
+    fn recent_cache_hit(&self, method: &str) {
+        self.cache_hit_counter.with_label_values(&["recent", method]).inc();
     }
 }

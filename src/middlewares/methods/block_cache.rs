@@ -283,14 +283,19 @@ impl BlockCacheMiddlewareImpl {
                 let mut hit = true;
                 metrics.recent_cache_query(&request.method);
 
+                let method = request.method.clone();
+
                 let result = self
                     .recent_cache
                     .get_or_insert_with(key.clone(), || {
                         hit = false;
-                        metrics.recent_cache_miss(&request.method);
                         next(request, context).boxed()
                     })
                     .await;
+
+                if hit {
+                    metrics.recent_cache_hit(&method);
+                }
 
                 get_active_span(|span| {
                     span.set_attributes([KeyValue::new("bypass", false), KeyValue::new("hit", hit)])
@@ -311,14 +316,19 @@ impl BlockCacheMiddlewareImpl {
                 let mut hit = true;
                 metrics.finalized_cache_query(&request.method);
 
+                let method = request.method.clone();
+
                 let result = self
                     .finalized_cache
                     .get_or_insert_with(key.clone(), || {
                         hit = false;
-                        metrics.finalized_cache_miss(&request.method);
                         next(request, context).boxed()
                     })
                     .await;
+
+                if hit {
+                    metrics.finalized_cache_hit(&method);
+                }
 
                 get_active_span(|span| {
                     span.set_attributes([KeyValue::new("bypass", false), KeyValue::new("hit", hit)])

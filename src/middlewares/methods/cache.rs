@@ -100,15 +100,19 @@ impl Middleware<CallRequest, CallResult> for CacheMiddleware {
 
             let metrics = self.metrics.clone();
             metrics.finalized_cache_query(&request.method);
+            let method = request.method.clone();
 
             let result = self
                 .cache
                 .get_or_insert_with(key.clone(), || {
                     hit = false;
-                    metrics.finalized_cache_miss(&request.method);
                     next(request, context).boxed()
                 })
                 .await;
+
+            if hit {
+                metrics.finalized_cache_hit(&method);
+            }
 
             get_active_span(|span| span.set_attribute(KeyValue::new("hit", hit)));
 
