@@ -71,16 +71,23 @@ pub fn setup_telemetry(options: &TelemetryConfig) -> Result<Option<Tracer>, Trac
                 exporter = exporter.with_endpoint(agent_endpoint.clone());
             }
 
-            let resource = Resource::from_schema_url(
-                [
-                    KeyValue::new(semconv::resource::SERVICE_NAME, env!("CARGO_PKG_NAME")),
-                    KeyValue::new(
-                        semconv::resource::SERVICE_VERSION,
-                        crate::build_info::GIT_VERSION.unwrap_or(env!("CARGO_PKG_VERSION")),
-                    ),
-                ],
-                semconv::SCHEMA_URL,
-            );
+            let mut attrs = vec![
+                KeyValue::new(semconv::resource::SERVICE_NAME, service_name),
+                KeyValue::new(
+                    semconv::resource::SERVICE_VERSION,
+                    crate::build_info::GIT_VERSION.unwrap_or(env!("CARGO_PKG_VERSION")),
+                ),
+            ];
+
+            if let Some(pod_name) = option_env!("POD_NAME") {
+                attrs.push(KeyValue::new(semconv::resource::K8S_POD_NAME, pod_name));
+            }
+
+            if let Some(pod_namespace) = option_env!("POD_NAMESPACE") {
+                attrs.push(KeyValue::new(semconv::resource::K8S_NAMESPACE_NAME, pod_namespace));
+            }
+
+            let resource = Resource::from_schema_url(attrs, semconv::SCHEMA_URL);
 
             let trace_config = trace::config()
                 .with_resource(resource)
