@@ -240,6 +240,11 @@ impl SubwayServerBuilder {
                                 .option_layer(
                                     rate_limit_builder
                                         .as_ref()
+                                        .and_then(|r| r.global_limit(rpc_method_weights.clone())),
+                                )
+                                .option_layer(
+                                    rate_limit_builder
+                                        .as_ref()
                                         .and_then(|r| r.ip_limit(socket_ip, rpc_method_weights.clone())),
                                 )
                                 .option_layer(

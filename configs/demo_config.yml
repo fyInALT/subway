@@ -26,6 +26,18 @@ extensions:
     max_connections: 2000
     max_batch_size: 10
     cors: all
+  # these are for demo purpose only, please adjust to your needs.
+  # It's recommend to use big `period_secs` to reduce CPU costs.
+  rate_limit:
+    connection: # 10 RPC requests per 10 second per connection
+      burst: 10
+      period_secs: 10
+    ip: # 20 RPC requests per 10 seconds per ip
+      burst: 20
+      period_secs: 10
+    global: # 40 RPC requests per 10 seconds for global request
+      burst: 40
+      period_secs: 10
   whitelist:
     eth_call:
       # allow 0x01 to create contract.

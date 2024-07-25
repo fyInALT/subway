@@ -238,6 +238,18 @@ pub async fn validate(config: &Config) -> Result<(), anyhow::Error> {
                 }
             }
         }
+
+        if let Some(ref rule) = rate_limit.global {
+            for method in &config.rpcs.methods {
+                if method.rate_limit_weight > rule.burst {
+                    bail!(
+                        "`{}` rate_limit_weight is too big for global: {}",
+                        method.method,
+                        method.rate_limit_weight,
+                    );
+                }
+            }
+        }
     }
 
     // since endpoints connection test is async
