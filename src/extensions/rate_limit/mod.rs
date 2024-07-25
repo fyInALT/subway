@@ -27,9 +27,9 @@ pub struct RateLimitConfig {
 
 #[derive(Deserialize, Debug, Clone, Default)]
 pub struct Rule {
-    // burst is the maximum number of requests that can be made in a period
+    /// burst is the maximum number of requests that can be made in a period
     pub burst: u32,
-    // period is the period of time in which the burst is allowed
+    /// period is the period of time in which the burst is allowed
     #[serde(default = "default_period_secs")]
     pub period_secs: u64,
     // jitter_millis is the maximum amount of jitter to add to the rate limit
@@ -37,6 +37,9 @@ pub struct Rule {
     // e.g. if jitter_up_to_millis is 1000, then additional delay of random(0, 1000) milliseconds will be added
     #[serde(default = "default_jitter_up_to_millis")]
     pub jitter_up_to_millis: u64,
+    /// Return the responses with delay instead of returning a rate limit jsonrpc error directly if true.
+    #[serde(default)]
+    pub blocking: bool,
 }
 
 fn default_period_secs() -> u64 {
@@ -52,9 +55,11 @@ pub struct RateLimitBuilder {
 
     ip_jitter: Option<Jitter>,
     ip_limiter: Option<Arc<DefaultKeyedRateLimiter<String>>>,
+    ip_blocking: bool,
 
     global_jitter: Option<Jitter>,
     global_limiter: Option<Arc<DefaultDirectRateLimiter>>,
+    global_blocking: bool,
 }
 
 #[async_trait::async_trait]
@@ -80,28 +85,36 @@ impl RateLimitBuilder {
 
         let mut ip_limiter = None;
         let mut ip_jitter = None;
+        let mut ip_blocking = false;
         if let Some(ref rule) = config.ip {
             let burst = NonZeroU32::new(rule.burst).unwrap();
             let quota = build_quota(burst, Duration::from_secs(rule.period_secs));
             ip_limiter = Some(Arc::new(RateLimiter::keyed(quota)));
             ip_jitter = Some(Jitter::up_to(Duration::from_millis(rule.jitter_up_to_millis)));
+            ip_blocking = rule.blocking;
         }
 
         let mut global_limiter = None;
         let mut global_jitter = None;
+        let mut global_blocking = false;
         if let Some(ref rule) = config.global {
             let burst = NonZeroU32::new(rule.burst).unwrap();
             let quota = build_quota(burst, Duration::from_secs(rule.period_secs));
             global_limiter = Some(Arc::new(DefaultDirectRateLimiter::direct(quota)));
             global_jitter = Some(Jitter::up_to(Duration::from_millis(rule.jitter_up_to_millis)));
+            global_blocking = rule.blocking;
         }
 
         Self {
             config,
+
             ip_jitter,
             ip_limiter,
+            ip_blocking,
+
             global_jitter,
             global_limiter,
+            global_blocking,
         }
     }
 
@@ -110,7 +123,7 @@ impl RateLimitBuilder {
             let burst = NonZeroU32::new(rule.burst).unwrap();
             let period = Duration::from_secs(rule.period_secs);
             let jitter = Jitter::up_to(Duration::from_millis(rule.jitter_up_to_millis));
-            Some(ConnectionRateLimitLayer::new(burst, period, jitter, method_weights))
+            Some(ConnectionRateLimitLayer::new(burst, period, jitter, method_weights).blocking(rule.blocking))
         } else {
             None
         }
@@ -124,6 +137,7 @@ impl RateLimitBuilder {
                 self.ip_jitter.unwrap_or_default(),
                 method_weights,
             )
+            .blocking(self.ip_blocking)
         })
     }
 
@@ -134,6 +148,7 @@ impl RateLimitBuilder {
                 self.global_jitter.unwrap_or_default(),
                 method_weights,
             )
+            .blocking(self.global_blocking)
         })
     }
 

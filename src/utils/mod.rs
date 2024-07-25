@@ -29,6 +29,10 @@ pub mod errors {
         )
     }
 
+    pub fn reached_rate_limit() -> ErrorObjectOwned {
+        ErrorObjectOwned::owned::<String>(CALL_EXECUTION_FAILED_CODE, "Reached rate limit", None)
+    }
+
     pub fn internal_error<T: ToString>(msg: T) -> ErrorObjectOwned {
         ErrorObjectOwned::owned(INTERNAL_ERROR_CODE, INTERNAL_ERROR_MSG, Some(msg.to_string()))
     }
