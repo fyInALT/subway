@@ -395,7 +395,7 @@ methods:
 subscriptions:
   - subscribe:
       method: eth_subscribe
-      rate_limit_weight: 10
+      rate_limit_weight: 500
     unsubscribe:
       method: eth_unsubscribe
       rate_limit_weight: 10
