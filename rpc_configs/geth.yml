@@ -2,29 +2,38 @@
 methods:
   # Eth namespace (client)
   - method: eth_chainId
+    rate_limit_weight: 2
     block_cache:
       size: 1
       ttl_units: 0 # cache forever
   - method: eth_syncing
+    rate_limit_weight: 2
   - method: eth_coinbase
+    rate_limit_weight: 2
   - method: eth_accounts
+    rate_limit_weight: 10
   - method: eth_blockNumber
+    rate_limit_weight: 10
     block_cache:
       ttl_units: 1
   # Eth namespace (fee market)
   - method: eth_gasPrice
+    rate_limit_weight: 19
     block_cache:
       size: 1
       ttl_units: 1
   - method: eth_blobBaseFee
+    rate_limit_weight: 19
     block_cache:
       size: 1
       ttl_units: 1
   - method: eth_maxPriorityFeePerGas
+    rate_limit_weight: 10
     block_cache:
       size: 1
       ttl_units: 1
   - method: eth_feeHistory
+    rate_limit_weight: 10
     params:
       - name: BlockCount
         ty: Bytes
@@ -34,24 +43,25 @@ methods:
       - name: RewardPercentiles
         ty: Bytes
   # Eth namespace (sign)
-  - method: eth_sign
-    params:
-      - name: Address
-        ty: String
-      - name: Message
-        ty: String
-  - method: eth_signTransaction
-    params:
-      - name: Transaction
-        ty: Bytes
-  # Eth namespace (submit)
-  - method: eth_sendTransaction
-    block_cache:
-      size: 0
-    params:
-      - name: Transaction
-        ty: Bytes
+#  - method: eth_sign
+#    params:
+#      - name: Address
+#        ty: String
+#      - name: Message
+#        ty: String
+#  - method: eth_signTransaction
+#    params:
+#      - name: Transaction
+#        ty: Bytes
+#  # Eth namespace (submit)
+#  - method: eth_sendTransaction
+#    block_cache:
+#      size: 0
+#    params:
+#      - name: Transaction
+#        ty: Bytes
   - method: eth_sendRawTransaction
+    rate_limit_weight: 100
     block_cache:
       size: 0
     params:
@@ -59,6 +69,7 @@ methods:
         ty: Bytes
   # Eth namespace (execute)
   - method: eth_call
+    rate_limit_weight: 26
     block_cache:
       ttl_units: 1
     params:
@@ -68,6 +79,7 @@ methods:
         ty: BlockTag
         inject: true
   - method: eth_estimateGas
+    rate_limit_weight: 87
     block_cache:
       ttl_units: 1
     params:
@@ -77,6 +89,7 @@ methods:
         ty: BlockTag
         inject: true
   - method: eth_createAccessList
+    rate_limit_weight: 10
     block_cache:
       ttl_units: 1
     params:
@@ -87,12 +100,14 @@ methods:
         inject: true
   # Eth namespace (block)
   - method: eth_getBlockByHash
+    rate_limit_weight: 21
     params:
       - name: BlockHash
         ty: BlockHash
       - name: FullTransactions
         ty: Boolean
   - method: eth_getBlockByNumber
+    rate_limit_weight: 16
     params:
       - name: Block
         ty: BlockTag
@@ -100,60 +115,72 @@ methods:
       - name: FullTransactions
         ty: Boolean
   - method: eth_getBlockTransactionCountByHash
+    rate_limit_weight: 20
     params:
       - name: BlockHash
         ty: BlockHash
   - method: eth_getBlockTransactionCountByNumber
+    rate_limit_weight: 20
     params:
       - name: Block
         ty: BlockTag
         inject: true
   - method: eth_getUncleCountByBlockHash
+    rate_limit_weight: 15
     params:
       - name: BlockHash
         ty: BlockHash
   - method: eth_getUncleCountByBlockNumber
+    rate_limit_weight: 15
     params:
       - name: Block
         ty: BlockTag
         inject: true
-  - method: eth_getBlockReceipts
+  - method: eth_getBlockReceipt
+    rate_limit_weight: 500
     params:
       - name: Block
         ty: BlockTag
         inject: true
   # Eth namespace (filter)
   - method: eth_newFilter
+    rate_limit_weight: 20
     block_cache:
       size: 0
     params:
       - name: Filter
         ty: Bytes
   - method: eth_newBlockFilter
+    rate_limit_weight: 20
     block_cache:
       size: 0
   - method: eth_newPendingTransactionFilter
+    rate_limit_weight: 20
     block_cache:
       size: 0
   - method: eth_getFilterChanges
+    rate_limit_weight: 20
     block_cache:
       size: 0
     params:
       - name: FilterIdentifier
         ty: Bytes
   - method: eth_getFilterLogs
+    rate_limit_weight: 75
     block_cache:
       size: 0
     params:
       - name: FilterIdentifier
         ty: Bytes
   - method: eth_getLogs
+    rate_limit_weight: 75
     block_cache:
       size: 0
     params:
       - name: Filter
         ty: Bytes
   - method: eth_uninstallFilter
+    rate_limit_weight: 10
     block_cache:
       size: 0
     params:
@@ -161,6 +188,7 @@ methods:
         ty: Bytes
   # Eth namespace (state)
   - method: eth_getBalance
+    rate_limit_weight: 19
     params:
       - name: Address
         ty: Bytes
@@ -168,6 +196,7 @@ methods:
         ty: BlockTag
         inject: true
   - method: eth_getStorageAt
+    rate_limit_weight: 17
     params:
       - name: Address
         ty: Bytes
@@ -177,6 +206,7 @@ methods:
         ty: BlockTag
         inject: true
   - method: eth_getTransactionCount
+    rate_limit_weight: 26
     block_cache:
       ttl_units: 1
     params:
@@ -186,6 +216,7 @@ methods:
         ty: BlockTag
         inject: true
   - method: eth_getCode
+    rate_limit_weight: 19
     params:
       - name: Address
         ty: Bytes
@@ -193,6 +224,7 @@ methods:
         ty: BlockTag
         inject: true
   - method: eth_getProof
+    rate_limit_weight: 21
     params:
       - name: Address
         ty: Bytes
@@ -203,16 +235,19 @@ methods:
         inject: true
   # Eth namespace (transaction)
   - method: eth_getTransactionByHash
+    rate_limit_weight: 17
     params:
       - name: TransactionHash
         ty: Bytes
   - method: eth_getTransactionByBlockHashAndIndex
+    rate_limit_weight: 15
     params:
       - name: BlockHash
         ty: BlockHash
       - name: TransactionIndex
         ty: Bytes
   - method: eth_getTransactionByBlockNumberAndIndex
+    rate_limit_weight: 15
     params:
       - name: Block
         ty: BlockTag
@@ -220,102 +255,148 @@ methods:
       - name: TransactionIndex
         ty: HexNumber
   - method: eth_getTransactionReceipt
+    rate_limit_weight: 15
     params:
       - name: TransactionHash
         ty: Bytes
 
   # Debug namespace (standard)
   - method: debug_getBadBlocks
+    rate_limit_weight: 10
     block_cache:
       size: 1
       ttl_units: 1
   - method: debug_getRawBlock
+    rate_limit_weight: 20
     params:
       - name: Block
         ty: BlockTag
         inject: true
   - method: debug_getRawHeader
+    rate_limit_weight: 15
     params:
       - name: Block
         ty: BlockTag
         inject: true
   - method: debug_getRawReceipts
+    rate_limit_weight: 500
     params:
       - name: Block
         ty: BlockTag
         inject: true
   - method: debug_getRawTransaction
+    rate_limit_weight: 20
     params:
       - name: TransactionHash
         ty: Bytes
 
   # Debug namespace (Geth-specified)
   - method: debug_accountRange
+    rate_limit_weight: 500
   - method: debug_storageRangeAt
+    rate_limit_weight: 500
   - method: debug_chaindbCompact
+    rate_limit_weight: 100
   - method: debug_chaindbProperty
+    rate_limit_weight: 100
   - method: debug_dbAncient
+    rate_limit_weight: 100
   - method: debug_dbAncients
+    rate_limit_weight: 100
   - method: debug_dbGet
+    rate_limit_weight: 100
   - method: debug_dumpBlock
+    rate_limit_weight: 100
   - method: debug_getAccessibleState
+    rate_limit_weight: 100
   - method: debug_getModifiedAccountsByHash
+    rate_limit_weight: 100
   - method: debug_getModifiedAccountsByNumber
+    rate_limit_weight: 100
   - method: debug_preimage
+    rate_limit_weight: 100
   - method: debug_printBlock
+    rate_limit_weight: 100
   - method: debug_setHead
+    rate_limit_weight: 100
   - method: debug_setTrieFlushInterval
+    rate_limit_weight: 100
   - method: debug_getTrieFlushInterval
+    rate_limit_weight: 100
     block_cache:
       size: 1
       ttl_units: 1
   # Debug (trace) namespace (Geth-specified)
   - method: debug_intermediateRoots
+    rate_limit_weight: 100
   - method: debug_standardTraceBlockToFile
+    rate_limit_weight: 100
   - method: debug_standardTraceBadBlockToFile
+    rate_limit_weight: 100
   - method: debug_traceBadBlock
+    rate_limit_weight: 100
   - method: debug_traceBlock
+    rate_limit_weight: 497
   - method: debug_traceBlockByNumber
+    rate_limit_weight: 497
   - method: debug_traceBlockByHash
+    rate_limit_weight: 497
   - method: debug_traceBlockFromFile
+    rate_limit_weight: 497
   - method: debug_traceCall
+    rate_limit_weight: 309
   - method: debug_traceChain
+    rate_limit_weight: 100
   - method: debug_traceTransaction
+    rate_limit_weight: 309
 
   # Txpool namespace (Geth-specified)
   - method: txpool_content
+    rate_limit_weight: 800
     block_cache:
       size: 1
       ttl_seconds: 3
   - method: txpool_contentFrom
+    rate_limit_weight: 800
     block_cache:
       ttl_seconds: 3
     params:
       - name: Address
         ty: Bytes
   - method: txpool_inspect
+    rate_limit_weight: 800
     block_cache:
       size: 1
       ttl_seconds: 3
   - method: txpool_status
+    rate_limit_weight: 800
     block_cache:
       size: 1
       ttl_seconds: 3
 
   # Net namespace (Geth-specified)
   - method: net_listening
+    rate_limit_weight: 5
   - method: net_peerCount
+    rate_limit_weight: 5
   - method: net_version
+    rate_limit_weight: 5
     block_cache:
       size: 1
 
   # Web3 namespace (Geth-specified)
   - method: web3_clientVersion
+    rate_limit_weight: 15
     block_cache:
       size: 1
   - method: web3_sha3
+    rate_limit_weight: 15
 
 subscriptions:
-  - subscribe: eth_subscribe
-    unsubscribe: eth_unsubscribe
+  - subscribe:
+      method: eth_subscribe
+      rate_limit_weight: 10
+    unsubscribe:
+      method: eth_unsubscribe
+      rate_limit_weight: 10
     name: eth_subscription

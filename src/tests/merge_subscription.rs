@@ -1,7 +1,7 @@
 use serde_json::json;
 
 use crate::{
-    config::{Config, MergeStrategy, MiddlewaresConfig, RpcDefinitions, RpcSubscription},
+    config::{Config, MergeStrategy, MiddlewaresConfig, RpcDefinitions, RpcSubscription, RpcSubscriptionMethod},
     extensions::{
         client::{
             mock::{SinkTask, TestServerBuilder},
@@ -72,20 +72,38 @@ async fn merge_subscription_works() {
             methods: vec![],
             subscriptions: vec![
                 RpcSubscription {
-                    subscribe: subscribe_head.to_string(),
-                    unsubscribe: unsubscribe_head.to_string(),
+                    subscribe: RpcSubscriptionMethod {
+                        method: subscribe_head.to_string(),
+                        rate_limit_weight: 1,
+                    },
+                    unsubscribe: RpcSubscriptionMethod {
+                        method: unsubscribe_head.to_string(),
+                        rate_limit_weight: 1,
+                    },
                     name: update_head.to_string(),
                     merge_strategy: None,
                 },
                 RpcSubscription {
-                    subscribe: subscribe_finalized.to_string(),
-                    unsubscribe: unsubscribe_finalized.to_string(),
+                    subscribe: RpcSubscriptionMethod {
+                        method: subscribe_finalized.to_string(),
+                        rate_limit_weight: 1,
+                    },
+                    unsubscribe: RpcSubscriptionMethod {
+                        method: unsubscribe_finalized.to_string(),
+                        rate_limit_weight: 1,
+                    },
                     name: update_finalized.to_string(),
                     merge_strategy: None,
                 },
                 RpcSubscription {
-                    subscribe: subscribe_mock.to_string(),
-                    unsubscribe: unsubscribe_mock.to_string(),
+                    subscribe: RpcSubscriptionMethod {
+                        method: subscribe_mock.to_string(),
+                        rate_limit_weight: 1,
+                    },
+                    unsubscribe: RpcSubscriptionMethod {
+                        method: unsubscribe_mock.to_string(),
+                        rate_limit_weight: 1,
+                    },
                     name: update_mock.to_string(),
                     merge_strategy: Some(MergeStrategy::MergeStorageChanges),
                 },

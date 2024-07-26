@@ -178,32 +178,44 @@ methods:
         ty: AccountId
 
 subscriptions:
-  - subscribe: author_submitAndWatchExtrinsic
-    unsubscribe: author_unwatchExtrinsic
+  - subscribe:
+      method: author_submitAndWatchExtrinsic
+    unsubscribe:
+      method: author_unwatchExtrinsic
     name: author_extrinsicUpdate
 
-  - subscribe: chain_subscribeNewHeads
-    unsubscribe: chain_unsubscribeNewHeads
+  - subscribe:
+      method: chain_subscribeNewHeads
+    unsubscribe:
+      method: chain_unsubscribeNewHeads
     name: chain_newHead
     merge_strategy: replace
 
-  - subscribe: chain_subscribeFinalizedHeads
-    unsubscribe: chain_unsubscribeFinalizedHeads
+  - subscribe:
+      method: chain_subscribeFinalizedHeads
+    unsubscribe:
+      method: chain_unsubscribeFinalizedHeads
     name: chain_finalizedHead
     merge_strategy: replace
 
-  - subscribe: chain_subscribeAllHeads
-    unsubscribe: chain_unsubscribeAllHeads
+  - subscribe:
+      method: chain_subscribeAllHeads
+    unsubscribe:
+      method: chain_unsubscribeAllHeads
     name: chain_allHead
     merge_strategy: replace
 
-  - subscribe: state_subscribeRuntimeVersion
-    unsubscribe: state_unsubscribeRuntimeVersion
+  - subscribe:
+      method: state_subscribeRuntimeVersion
+    unsubscribe:
+      method: state_unsubscribeRuntimeVersion
     name: state_runtimeVersion
     merge_strategy: replace
 
-  - subscribe: state_subscribeStorage
-    unsubscribe: state_unsubscribeStorage
+  - subscribe:
+      method: state_subscribeStorage
+    unsubscribe:
+      method: state_unsubscribeStorage
     name: state_storage
     merge_strategy: merge_storage_changes
 

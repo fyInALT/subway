@@ -262,6 +262,8 @@ methods:
         ty: Bytes
 
 subscriptions:
-  - subscribe: eth_subscribe
-    unsubscribe: eth_unsubscribe
+  - subscribe:
+      method: eth_subscribe
+    unsubscribe:
+      method: eth_unsubscribe
     name: eth_subscription

@@ -141,12 +141,20 @@ pub enum MergeStrategy {
 #[derive(Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct RpcSubscription {
-    pub subscribe: String,
-    pub unsubscribe: String,
+    pub subscribe: RpcSubscriptionMethod,
+    pub unsubscribe: RpcSubscriptionMethod,
     pub name: String,
 
     #[serde(default)]
     pub merge_strategy: Option<MergeStrategy>,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct RpcSubscriptionMethod {
+    pub method: String,
+    #[serde(default = "default_rate_limit_weight")]
+    pub rate_limit_weight: u32,
 }
 
 #[derive(Deserialize, Validate, Debug)]

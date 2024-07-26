@@ -14,7 +14,10 @@ use helpers::{
 };
 
 use subway::{
-    config::{Config, MergeStrategy, MethodParam, MiddlewaresConfig, RpcDefinitions, RpcMethod, RpcSubscription},
+    config::{
+        Config, MergeStrategy, MethodParam, MiddlewaresConfig, RpcDefinitions, RpcMethod, RpcSubscription,
+        RpcSubscriptionMethod,
+    },
     extensions::{api::SubstrateApiConfig, client::ClientConfig, server::ServerConfig, ExtensionsConfig},
 };
 
@@ -289,8 +292,14 @@ fn config() -> Config {
                 },
             ],
             subscriptions: vec![RpcSubscription {
-                subscribe: helpers::SUB_METHOD_NAME.to_string(),
-                unsubscribe: helpers::UNSUB_METHOD_NAME.to_string(),
+                subscribe: RpcSubscriptionMethod {
+                    method: helpers::SUB_METHOD_NAME.to_string(),
+                    rate_limit_weight: 1,
+                },
+                unsubscribe: RpcSubscriptionMethod {
+                    method: helpers::UNSUB_METHOD_NAME.to_string(),
+                    rate_limit_weight: 1,
+                },
                 name: helpers::SUB_METHOD_NAME.to_string(),
                 merge_strategy: Some(MergeStrategy::Replace),
             }],

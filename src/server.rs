@@ -49,7 +49,7 @@ pub async fn build(config: Config) -> anyhow::Result<SubwayServerHandle> {
 
     let rate_limit_builder = extensions_registry.read().await.get::<RateLimitBuilder>();
 
-    let rpc_method_weights = MethodWeights::from_config(&config.rpcs.methods);
+    let rpc_method_weights = MethodWeights::from_config(&config.rpcs.methods, &config.rpcs.subscriptions);
 
     let request_timeout_seconds = server_builder.config.request_timeout_seconds;
 
@@ -124,8 +124,8 @@ pub async fn build(config: Config) -> anyhow::Result<SubwayServerHandle> {
 
             // register subscriptions from config
             for subscription in config.rpcs.subscriptions {
-                let subscribe_name = string_to_static_str(subscription.subscribe.clone());
-                let unsubscribe_name = string_to_static_str(subscription.unsubscribe.clone());
+                let subscribe_name = string_to_static_str(subscription.subscribe.method.clone());
+                let unsubscribe_name = string_to_static_str(subscription.unsubscribe.method.clone());
                 let name = string_to_static_str(subscription.name.clone());
 
                 let mut subscription_middlewares: Vec<Arc<_>> = vec![];

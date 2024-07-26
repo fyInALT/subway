@@ -1,5 +1,5 @@
 use crate::{
-    config::{Config, MergeStrategy, MiddlewaresConfig, RpcDefinitions, RpcSubscription},
+    config::{Config, MergeStrategy, MiddlewaresConfig, RpcDefinitions, RpcSubscription, RpcSubscriptionMethod},
     extensions::{
         client::{mock::TestServerBuilder, Client, ClientConfig},
         merge_subscription::MergeSubscriptionConfig,
@@ -54,14 +54,26 @@ async fn upstream_error_propagate() {
             methods: vec![],
             subscriptions: vec![
                 RpcSubscription {
-                    subscribe: subscribe_mock.to_string(),
-                    unsubscribe: unsubscribe_mock.to_string(),
+                    subscribe: RpcSubscriptionMethod {
+                        method: subscribe_mock.to_string(),
+                        rate_limit_weight: 1,
+                    },
+                    unsubscribe: RpcSubscriptionMethod {
+                        method: unsubscribe_mock.to_string(),
+                        rate_limit_weight: 1,
+                    },
                     name: update_mock.to_string(),
                     merge_strategy: None,
                 },
                 RpcSubscription {
-                    subscribe: subscribe_merge_mock.to_string(),
-                    unsubscribe: unsubscribe_merge_mock.to_string(),
+                    subscribe: RpcSubscriptionMethod {
+                        method: subscribe_merge_mock.to_string(),
+                        rate_limit_weight: 1,
+                    },
+                    unsubscribe: RpcSubscriptionMethod {
+                        method: unsubscribe_merge_mock.to_string(),
+                        rate_limit_weight: 1,
+                    },
                     name: update_merge_mock.to_string(),
                     merge_strategy: Some(MergeStrategy::Replace),
                 },
