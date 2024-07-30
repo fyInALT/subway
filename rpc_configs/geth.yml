@@ -136,7 +136,7 @@ methods:
       - name: Block
         ty: BlockTag
         inject: true
-  - method: eth_getBlockReceipt
+  - method: eth_getBlockReceipts
     rate_limit_weight: 500
     params:
       - name: Block
