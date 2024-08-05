@@ -4,9 +4,8 @@ use async_trait::async_trait;
 use blake2::Blake2b512;
 use futures::future::FutureExt as _;
 use jsonrpsee::core::JsonValue;
-use opentelemetry::trace::get_active_span;
 use opentelemetry::{
-    trace::{FutureExt, Span, TraceContextExt},
+    trace::{get_active_span, FutureExt, Span, TraceContextExt},
     Context, KeyValue,
 };
 use opentelemetry_semantic_conventions::resource as semconv;
@@ -136,7 +135,7 @@ impl Middleware<CallRequest, CallResult> for BlockCacheMiddleware {
         let request_params = serde_json::to_string(&request.params).expect("serialize JSON value shouldn't be fail");
         span.set_attributes([
             KeyValue::new(semconv::RPC_METHOD, request_method),
-            KeyValue::new("rpc.params", request_params),
+            KeyValue::new("rpc.jsonrpc.params", request_params),
         ]);
 
         BlockCacheMiddlewareImpl::new(self)

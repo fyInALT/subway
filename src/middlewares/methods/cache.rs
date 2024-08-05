@@ -81,7 +81,7 @@ impl Middleware<CallRequest, CallResult> for CacheMiddleware {
         let request_params = serde_json::to_string(&request.params).expect("serialize JSON value shouldn't be fail");
         span.set_attributes([
             KeyValue::new(semconv::RPC_METHOD, request.method.clone()),
-            KeyValue::new("rpc.params", request_params),
+            KeyValue::new("rpc.jsonrpc.params", request_params),
         ]);
 
         let bypass_cache = context.get::<BypassCache>().map(|v| v.0).unwrap_or(false);

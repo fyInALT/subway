@@ -124,7 +124,7 @@ impl Middleware<CallRequest, CallResult> for BlockTagMiddleware {
             "block_tag",
             [
                 KeyValue::new(semconv::RPC_METHOD, request_method),
-                KeyValue::new("rpc.params", request_params),
+                KeyValue::new("rpc.jsonrpc.params", request_params),
             ],
         ))
         .await

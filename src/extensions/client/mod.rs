@@ -16,7 +16,10 @@ use jsonrpsee::{
     },
     ws_client::{WsClient, WsClientBuilder},
 };
-use opentelemetry::{trace::FutureExt, KeyValue};
+use opentelemetry::{
+    trace::{get_active_span, FutureExt, Span, TraceContextExt},
+    Context, KeyValue,
+};
 use opentelemetry_semantic_conventions::resource as semconv;
 use rand::{seq::SliceRandom, thread_rng};
 use serde::Deserialize;
@@ -494,7 +497,16 @@ impl Client {
     }
 
     pub async fn request(&self, method: &str, params: Vec<JsonValue>) -> CallResult {
+        let mut span = TRACER.span("client");
+
+        let request_method = method.to_string();
         let request_params = serde_json::to_string(&params).expect("serialize JSON value shouldn't be fail");
+        let request_endpoint = self.current_endpoint().to_string();
+        span.set_attributes([
+            KeyValue::new(semconv::RPC_METHOD, request_method),
+            KeyValue::new("rpc.jsonrpc.params", request_params),
+            KeyValue::new("rpc.jsonrpc.endpoint", request_endpoint),
+        ]);
 
         async move {
             let (tx, rx) = oneshot::channel();
@@ -506,18 +518,48 @@ impl Client {
                     retries: self.retries,
                 }))
                 .await
-                .map_err(errors::internal_error)?;
+                .map_err(|err| {
+                    let error = errors::internal_error(err);
+                    get_active_span(|span| {
+                        span.set_attributes([
+                            KeyValue::new(semconv::RPC_JSONRPC_ERROR_CODE, error.code() as i64),
+                            KeyValue::new(semconv::RPC_JSONRPC_ERROR_MESSAGE, error.message().to_string()),
+                        ]);
+                    });
+                    error
+                })?;
 
-            rx.await.map_err(errors::internal_error)?.map_err(errors::map_error)
+            match rx.await {
+                Ok(Ok(value)) => {
+                    let response = serde_json::to_string(&value).expect("serialize JSON value shouldn't be fail");
+                    get_active_span(|span| {
+                        span.set_attribute(KeyValue::new("rpc.jsonrpc.result", response));
+                    });
+                    Ok(value)
+                }
+                Ok(Err(err)) => {
+                    let error = errors::map_error(err);
+                    get_active_span(|span| {
+                        span.set_attributes([
+                            KeyValue::new(semconv::RPC_JSONRPC_ERROR_CODE, error.code() as i64),
+                            KeyValue::new(semconv::RPC_JSONRPC_ERROR_MESSAGE, error.message().to_string()),
+                        ]);
+                    });
+                    Err(error)
+                }
+                Err(err) => {
+                    let error = errors::internal_error(err);
+                    get_active_span(|span| {
+                        span.set_attributes([
+                            KeyValue::new(semconv::RPC_JSONRPC_ERROR_CODE, error.code() as i64),
+                            KeyValue::new(semconv::RPC_JSONRPC_ERROR_MESSAGE, error.message().to_string()),
+                        ]);
+                    });
+                    Err(error)
+                }
+            }
         }
-        .with_context(TRACER.context_with_attrs(
-            "client",
-            [
-                KeyValue::new(semconv::RPC_METHOD, method.to_string()),
-                KeyValue::new("rpc.params", request_params),
-                KeyValue::new("endpoint", self.current_endpoint().to_string()),
-            ],
-        ))
+        .with_context(Context::current_with_span(span))
         .await
     }
 
@@ -527,7 +569,16 @@ impl Client {
         params: Vec<JsonValue>,
         unsubscribe: &str,
     ) -> Result<Subscription<JsonValue>, Error> {
+        let mut span = TRACER.span("client");
+
+        let subscribe_method = subscribe.to_string();
         let subscribe_params = serde_json::to_string(&params).expect("serialize JSON value shouldn't be fail");
+        let subscribe_endpoint = self.current_endpoint().to_string();
+        span.set_attributes([
+            KeyValue::new(semconv::RPC_METHOD, subscribe_method),
+            KeyValue::new("rpc.jsonrpc.params", subscribe_params),
+            KeyValue::new("rpc.jsonrpc.endpoint", subscribe_endpoint),
+        ]);
 
         async move {
             let (tx, rx) = oneshot::channel();
@@ -540,18 +591,29 @@ impl Client {
                     retries: self.retries,
                 }))
                 .await
-                .map_err(errors::internal_error)?;
+                .map_err(|err| {
+                    let error = errors::internal_error(err);
+                    get_active_span(|span| {
+                        span.set_attributes([
+                            KeyValue::new(semconv::RPC_JSONRPC_ERROR_CODE, error.code() as i64),
+                            KeyValue::new(semconv::RPC_JSONRPC_ERROR_MESSAGE, error.message().to_string()),
+                        ]);
+                    });
+                    error
+                })?;
 
-            rx.await.map_err(errors::internal_error)?
+            rx.await.map_err(|err| {
+                let error = errors::internal_error(err);
+                get_active_span(|span| {
+                    span.set_attributes([
+                        KeyValue::new(semconv::RPC_JSONRPC_ERROR_CODE, error.code() as i64),
+                        KeyValue::new(semconv::RPC_JSONRPC_ERROR_MESSAGE, error.message().to_string()),
+                    ]);
+                });
+                error
+            })?
         }
-        .with_context(TRACER.context_with_attrs(
-            "client",
-            [
-                KeyValue::new(semconv::RPC_METHOD, subscribe.to_string()),
-                KeyValue::new("rpc.params", subscribe_params),
-                KeyValue::new("endpoint", self.current_endpoint().to_string()),
-            ],
-        ))
+        .with_context(Context::current_with_span(span))
         .await
     }
 
