@@ -4431,7 +4431,7 @@ checksum = "81cdd64d312baedb58e21336b31bc043b77e01cc99033ce76ef539f78e965ebc"
 
 [[package]]
 name = "subway"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "alloy-consensus",
  "alloy-eips",
@@ -4443,6 +4443,7 @@ dependencies = [
  "chrono",
  "clap",
  "console-subscriber",
+ "const-hex",
  "const_format",
  "criterion",
  "enumflags2",

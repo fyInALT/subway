@@ -3,11 +3,14 @@ use std::{future::Future, net::SocketAddr, str::FromStr, sync::Arc};
 use async_trait::async_trait;
 use futures::FutureExt;
 use http::header::HeaderValue;
-use jsonrpsee::server::{
-    middleware::rpc::RpcServiceBuilder, serve_with_graceful_shutdown, stop_channel, ws, BatchRequestConfig,
-    RandomStringIdProvider, RpcModule, ServerHandle, StopHandle, TowerServiceBuilder,
+use jsonrpsee::{
+    core::server::Methods,
+    server::{
+        middleware::rpc::RpcServiceBuilder, serve_with_graceful_shutdown, stop_channel, ws, BatchRequestConfig,
+        IdProvider, RpcModule, ServerHandle, StopHandle, TowerServiceBuilder,
+    },
+    types::SubscriptionId,
 };
-use jsonrpsee::Methods;
 use opentelemetry::{trace::FutureExt as _, KeyValue};
 use opentelemetry_semantic_conventions::resource as semconv;
 use serde::Deserialize;
@@ -172,7 +175,7 @@ impl SubwayServerBuilder {
                 .set_http_middleware(http_middleware)
                 .set_batch_request_config(batch_request_config)
                 .max_connections(config.max_connections)
-                .set_id_provider(RandomStringIdProvider::new(16))
+                .set_id_provider(RandomEthereumIdProvider)
                 .to_service_builder(),
             rate_limit_builder,
             rpc_method_weights,
@@ -289,5 +292,15 @@ impl SubwayServerBuilder {
         });
 
         Ok((addr, server_handle))
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct RandomEthereumIdProvider;
+
+impl IdProvider for RandomEthereumIdProvider {
+    fn next_id(&self) -> SubscriptionId<'static> {
+        let random = rand::random::<u128>().to_le_bytes();
+        const_hex::encode_prefixed(random).into()
     }
 }
